@@ -10,7 +10,7 @@
                     </p>
 
                     <h1 class="max-w-3xl text-4xl font-bold tracking-tight text-slate-950">
-                        Valencia Multi-Barangay Service Portal
+                        Digital Access and Request Tracking Service
                     </h1>
 
                     <p class="max-w-3xl text-base leading-7 text-slate-600">
