@@ -2,14 +2,12 @@
 
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
-})->name('welcome');
+Route::view('/dashboard', 'dashboard')
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard');
 
-Route::get('/login', function () {
-    return view('auth.login');
-})->name('login');
-
-Route::get('/register', function () {
-    return view('auth.citizen-registry');
-})->name('register');
+require __DIR__ . '/public.php';
+require __DIR__ . '/auth.php';
+require __DIR__ . '/resident.php';
+require __DIR__ . '/barangay.php';
+require __DIR__ . '/super_admin.php';
