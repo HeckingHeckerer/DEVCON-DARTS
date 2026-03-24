@@ -180,7 +180,7 @@ body {
 }
 
 .hero-subtitle {
-    font-size: 5rem; /* SAME SIZE AS TITLE - EDIT TO ADJUST */
+    font-size: rem; /* SAME SIZE AS TITLE - EDIT TO ADJUST */
     color: #241439;
     font-weight: 600;
     margin-bottom: 3rem;

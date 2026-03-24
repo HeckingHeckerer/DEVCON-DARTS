@@ -155,7 +155,7 @@
             /* ===== MAIN BODY STYLES ===== */
             .main-body {
                 flex: 1;
-                background: linear-gradient(180deg, #4C1CD2 0%, #ffffff 70%);
+                background: linear-gradient(180deg, #4C1CD2 0%, #ffffff 35%);
                 padding: 3rem 2rem;
                 min-height: 100vh;
             }
@@ -252,6 +252,124 @@
             .btn-secondary:hover {
                 transform: translateY(-3px);
                 box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+            }
+
+            /* What We Offer Section */
+            .what-we-offer {
+                margin-top: 6rem; /* BIG SPACE BELOW BUTTONS */
+                padding: 2rem 0;
+            }
+
+            .what-we-offer-heading {
+                color: #000000;
+                font-size: 0.9rem;
+                font-weight: 500;
+                margin-bottom: 1rem;
+                text-align: left;
+            }
+
+            .available-services-heading {
+                color: #000000;
+                font-size: 2.2rem;
+                font-weight: 700;
+                margin-left: 1.5rem; /* INDENT - EDIT TO ADJUST */
+                margin-bottom: 1rem;
+                text-align: left;
+            }
+
+            .service-description {
+                color: #000000;
+                font-size: 0.85rem;
+                margin-left: 1.5rem; /* INDENT - EDIT TO ADJUST */
+                margin-bottom: 3rem;
+                text-align: left;
+            }
+
+            /* Certificate Services */
+            .services-category {
+                margin-bottom: 4rem;
+            }
+
+            .services-category-title {
+                color: #000000;
+                font-size: 1.15rem;
+                font-weight: 600;
+                text-align: center;
+                margin-bottom: 2.5rem;
+            }
+
+            .cards-container {
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 1.5rem;
+                margin-bottom: 3rem;
+            }
+
+            .services-category:nth-child(3) .cards-container {
+                grid-template-columns: repeat(2, 1fr);
+                max-width: 600px;
+                margin-left: auto;
+                margin-right: auto;
+                justify-items: center;
+            }
+
+            .service-card {
+                background: #D8CDF6; /* MAGENTA COLOR - EDIT TO CHANGE */
+                border-radius: 12px;
+                padding: 1.8rem;
+                text-align: center;
+                box-shadow: 0 8px 20px rgba(233, 30, 140, 0.2);
+                transition: transform 0.3s ease, box-shadow 0.3s ease;
+            }
+
+            .service-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 12px 30px rgba(233, 30, 140, 0.3);
+            }
+
+            .card-image-placeholder {
+                width: 80px;
+                height: 80px;
+                background: linear-gradient(135deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.1) 100%);
+                border-radius: 8px;
+                margin: 0 auto 1rem;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 2.5rem;
+            }
+
+            .card-title {
+                color: #000000;
+                font-size: 1.3rem;
+                font-weight: 700;
+                margin-bottom: 0.5rem;
+            }
+
+            .card-subtitle {
+                color: #000000;
+                font-size: 0.9rem;
+                margin-bottom: 1.5rem;
+                line-height: 1.5;
+            }
+
+            .card-button {
+                
+                color: #000000;
+                padding: 0.7rem 1.5rem;
+                border: none;
+                border-radius: 6px;
+                font-weight: 600;
+                font-size: 0.9rem;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                text-decoration: none;
+                display: inline-block;
+            }
+
+            .card-button:hover {
+                background: #f0f0f0;
+                transform: scale(1.05);
             }
 
             /* Content Sections */
@@ -394,6 +512,14 @@
                     font-size: 1.4rem;
                 }
 
+                .cards-container {
+                    grid-template-columns: repeat(2, 1fr);
+                }
+
+                .services-category:nth-child(3) .cards-container {
+                    grid-template-columns: repeat(2, 1fr);
+                }
+
                 .footer-content {
                     grid-template-columns: repeat(2, 1fr);
                 }
@@ -448,6 +574,15 @@
                     padding: 1rem;
                 }
 
+                .cards-container {
+                    grid-template-columns: 1fr;
+                }
+
+                .services-category:nth-child(3) .cards-container {
+                    grid-template-columns: 1fr;
+                    max-width: 100%;
+                }
+
                 .footer-content {
                     grid-template-columns: 1fr;
                 }
@@ -492,6 +627,73 @@
                     <div class="action-buttons">
                         <a href="#" class="btn-primary">Get Started Free</a>
                         <a href="#" class="btn-secondary">See how it works</a>
+                    </div>
+                </section>
+
+                <!-- What We Offer Section -->
+                <section class="what-we-offer">
+                    <p class="what-we-offer-heading">What we offer</p>
+                    <h2 class="available-services-heading">Available Barangay Services</h2>
+                    <p class="service-description">Select a service to get started. All requests are processed within 1-3 business days.</p>
+
+                    <!-- Certificate Services -->
+                    <div class="services-category">
+                        <h3 class="services-category-title">Certificate Services</h3>
+                        <div class="cards-container">
+                            <!-- Card 1: Barangay Certificate -->
+                            <div class="service-card">
+                                <div class="card-image-placeholder">📄</div>
+                                <h4 class="card-title">Barangay Certificate</h4>
+                                <p class="card-subtitle">Official certificate of good standing from your barangay.</p>
+                                <a href="#" class="card-button">Request Now</a>
+                            </div>
+
+                            <!-- Card 2: Certificate of Indigency -->
+                            <div class="service-card">
+                                <div class="card-image-placeholder">📋</div>
+                                <h4 class="card-title">Certificate of Indigency</h4>
+                                <p class="card-subtitle">Proof of eligibility for assistance programs.</p>
+                                <a href="#" class="card-button">Request Now</a>
+                            </div>
+
+                            <!-- Card 3: Certificate of Residency -->
+                            <div class="service-card">
+                                <div class="card-image-placeholder">🏠</div>
+                                <h4 class="card-title">Certificate of Residency</h4>
+                                <p class="card-subtitle">Confirms your address within the barangay.</p>
+                                <a href="#" class="card-button">Request Now</a>
+                            </div>
+
+                            <!-- Card 4: First-Time Job Seeker -->
+                            <div class="service-card">
+                                <div class="card-image-placeholder">💼</div>
+                                <h4 class="card-title">First-Time Job Seeker</h4>
+                                <p class="card-subtitle">For residents applying for their first job.</p>
+                                <a href="#" class="card-button">Request Now</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Assistance Services -->
+                    <div class="services-category">
+                        <h3 class="services-category-title">Assistance Services</h3>
+                        <div class="cards-container">
+                            <!-- Card 5: Educational Assistance -->
+                            <div class="service-card">
+                                <div class="card-image-placeholder">🎓</div>
+                                <h4 class="card-title">Educational Assistance</h4>
+                                <p class="card-subtitle">Financial support for your education needs.</p>
+                                <a href="#" class="card-button">Request Now</a>
+                            </div>
+
+                            <!-- Card 6: Medical Assistance -->
+                            <div class="service-card">
+                                <div class="card-image-placeholder">⚕️</div>
+                                <h4 class="card-title">Medical Assistance</h4>
+                                <p class="card-subtitle">Financial aid for medical and hospital expenses.</p>
+                                <a href="#" class="card-button">Request Now</a>
+                            </div>
+                        </div>
                     </div>
                 </section>
             </div>
