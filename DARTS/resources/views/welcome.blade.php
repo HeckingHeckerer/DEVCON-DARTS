@@ -1,992 +1,1154 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-
-        <title>{{ config('app.name', 'Laravel') }}</title>
-
-        <!-- Fonts -->
-        <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=poppins:400,500,600,700" rel="stylesheet" />
-
-        <!-- Styles / Scripts -->
-        @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
-            @vite(['resources/css/landing.css', 'resources/js/app.js'])
-        @else
-            <!-- Landing page CSS will be loaded from resources/css/landing.css -->
-        @endif
-
-        <style>
-            /* Landing Page Stylesheet - Embedded Fallback */
-            * {
-                margin: 0;
-                padding: 0;
-                box-sizing: border-box;
-            }
-
-            body {
-                font-family: 'Poppins', sans-serif;
-                display: flex;
-                flex-direction: column;
-                min-height: 100vh;
-            }
-
-            /* ===== HEADER STYLES ===== */
-            .header-container {
-                background-color: #ffffff;
-                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-                position: sticky;
-                top: 0;
-                z-index: 1000;
-            }
-
-            .header-content {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                max-width: 1400px;
-                margin: 0 auto;
-                padding: 1rem 2rem;
-                gap: 2rem;
-            }
-
-            /* Logo Section (Left) */
-            .logo-section {
-                display: flex;
-                gap: 1rem;
-                flex: 0 0 auto;
-                align-items: center;
-                min-width: 200px;
-            }
-
-            .logo-1 {
-                width: 80px;
-                height: 80px;
-                flex-shrink: 0;
-                object-fit: contain;
-            }
-
-            .logo-2 {
-                max-width: 150px;
-                height: 80px;
-                flex-shrink: 0;
-                object-fit: contain;
-            }
-
-            /* Navigation Links (Middle) */
-            .nav-links {
-                display: flex;
-                gap: 2rem;
-                flex: 1;
-                justify-content: center;
-            }
-
-            .nav-link {
-                text-decoration: none;
-                color: #333333;
-                font-weight: 500;
-                font-size: 1rem;
-                transition: color 0.3s ease;
-                position: relative;
-            }
-
-            .nav-link::after {
-                content: '';
-                position: absolute;
-                bottom: -5px;
-                left: 0;
-                width: 0;
-                height: 2px;
-                background: #667eea;
-                transition: width 0.3s ease;
-            }
-
-            .nav-link:hover {
-                color: #667eea;
-            }
-
-            .nav-link:hover::after {
-                width: 100%;
-            }
-
-            .login-section {
-                flex: 0 0 auto;
-                display: flex;
-                gap: 1rem;
-                align-items: center;
-            }
-
-            .login-btn {
-                background: #ffffff;
-                color: #000000;
-                padding: 0.75rem 1.5rem;
-                border: 2px solid #000000;
-                border-radius: 6px;
-                text-decoration: none;
-                font-weight: 600;
-                transition: transform 0.3s ease, box-shadow 0.3s ease;
-                display: inline-block;
-                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            }
-
-            .login-btn:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-            }
-
-            .register-btn {
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                color: #ffffff;
-                padding: 0.75rem 1.5rem;
-                border-radius: 6px;
-                text-decoration: none;
-                font-weight: 600;
-                transition: transform 0.3s ease, box-shadow 0.3s ease;
-                display: inline-block;
-                box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-            }
-
-            .register-btn:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-            }
-
-            /* ===== MAIN BODY STYLES ===== */
-            .main-body {
-                flex: 1;
-                background: linear-gradient(180deg, #4C1CD2 0%, #ffffff 20%);
-                padding: 3rem 2rem;
-                min-height: 100vh;
-            }
-
-            .body-content {
-                max-width: 1000px;
-                margin: 0 auto;
-                display: flex;
-                flex-direction: column;
-                gap: 2rem;
-            }
-
-            /* Hero Section */
-            .hero-section {
-                text-align: center;
-                color: white;
-                padding: 4rem 2rem; /* EDIT THIS TO ADJUST VERTICAL HEIGHT */
-            }
-
-            .hero-title {
-                font-size: 4rem; /* INCREASED SIZE - EDIT TO ADJUST TITLE SIZE */
-                font-weight: 700;
-                margin-bottom: 2rem;
-                line-height: 1.2;
-            }
-
-            .hero-title.left-aligned {
-                text-align: left;
-                margin-left: 2rem; /* EDIT TO MOVE LEFT/RIGHT */
-                text-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-            }
-
-            .serving-text {
-                color: #ffffff;
-            }
-
-            .city-text {
-                color: #f4d789;
-            }
-
-            .hero-subtitle {
-                font-size: 4rem; /* SAME SIZE AS TITLE - EDIT TO ADJUST */
-                color: #5a3a7a;
-                font-weight: 600;
-                margin-bottom: 3rem;
-                text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-            }
-
-            .hero-subtitle.right-aligned {
-                text-align: right;
-                margin-right: 4rem; /* EDIT TO MOVE LEFT/RIGHT */
-            }
-
-            .action-buttons {
-                display: flex;
-                gap: 1.5rem; /* EDIT TO ADJUST BUTTON GAP */
-                justify-content: center;
-                align-items: center;
-                margin-top: 2rem; /* EDIT TO MOVE BUTTONS UP/DOWN */
-            }
-
-            .btn-primary {
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                color: #ffffff;
-                padding: 1rem 2rem; /* EDIT TO ADJUST BUTTON PADDING */
-                border-radius: 6px;
-                text-decoration: none;
-                font-weight: 600;
-                font-size: 1rem;
-                transition: transform 0.3s ease, box-shadow 0.3s ease;
-                display: inline-block;
-                box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-            }
-
-            .btn-primary:hover {
-                transform: translateY(-3px);
-                box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-            }
-
-            .btn-secondary {
-                background: #ffffff;
-                color: #000000;
-                padding: 1rem 2rem; /* EDIT TO ADJUST BUTTON PADDING */
-                border: 2px solid #000000;
-                border-radius: 6px;
-                text-decoration: none;
-                font-weight: 600;
-                font-size: 1rem;
-                transition: transform 0.3s ease, box-shadow 0.3s ease;
-                display: inline-block;
-                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            }
-
-            .btn-secondary:hover {
-                transform: translateY(-3px);
-                box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-            }
-
-            /* What We Offer Section */
-            .what-we-offer {
-                margin-top: 6rem; /* BIG SPACE BELOW BUTTONS */
-                padding: 2rem 0;
-            }
-
-            .what-we-offer-heading {
-                color: #000000;
-                font-size: 0.9rem;
-                font-weight: 500;
-                margin-bottom: 1rem;
-                text-align: left;
-            }
-
-            .available-services-heading {
-                color: #000000;
-                font-size: 2.2rem;
-                font-weight: 700;
-                margin-left: 1.5rem; /* INDENT - EDIT TO ADJUST */
-                margin-bottom: 1rem;
-                text-align: left;
-            }
-
-            .service-description {
-                color: #000000;
-                font-size: 0.85rem;
-                margin-left: 1.5rem; /* INDENT - EDIT TO ADJUST */
-                margin-bottom: 3rem;
-                text-align: left;
-            }
-
-            /* Certificate Services */
-            .services-category {
-                margin-bottom: 4rem;
-            }
-
-            .services-category-title {
-                color: #000000;
-                font-size: 1.15rem;
-                font-weight: 600;
-                text-align: center;
-                margin-bottom: 2.5rem;
-            }
-
-            .cards-container {
-                display: grid;
-                grid-template-columns: repeat(4, 1fr);
-                gap: 1.5rem;
-                margin-bottom: 3rem;
-            }
-
-            .services-category:nth-child(3) .cards-container {
-                grid-template-columns: repeat(2, 1fr);
-                max-width: 600px;
-                margin-left: auto;
-                margin-right: auto;
-                justify-items: center;
-            }
-
-            .service-card {
-                background: #D8CDF6; /* MAGENTA COLOR - EDIT TO CHANGE */
-                border-radius: 12px;
-                padding: 1.8rem;
-                text-align: center;
-                box-shadow: 0 8px 20px rgba(233, 30, 140, 0.2);
-                transition: transform 0.3s ease, box-shadow 0.3s ease;
-            }
-
-            .service-card:hover {
-                transform: translateY(-5px);
-                box-shadow: 0 12px 30px rgba(233, 30, 140, 0.3);
-            }
-
-            .card-image-placeholder {
-                width: 80px;
-                height: 80px;
-                background: linear-gradient(135deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.1) 100%);
-                border-radius: 8px;
-                margin: 0 auto 1rem;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 2.5rem;
-            }
-
-            .card-title {
-                color: #000000;
-                font-size: 1.3rem;
-                font-weight: 700;
-                margin-bottom: 0.5rem;
-            }
-
-            .card-subtitle {
-                color: #000000;
-                font-size: 0.9rem;
-                margin-bottom: 1.5rem;
-                line-height: 1.5;
-            }
-
-            .card-button {
-                
-                color: #000000;
-                padding: 0.7rem 1.5rem;
-                border: none;
-                border-radius: 6px;
-                font-weight: 600;
-                font-size: 0.9rem;
-                cursor: pointer;
-                transition: all 0.3s ease;
-                text-decoration: none;
-                display: inline-block;
-            }
-
-            .card-button:hover {
-                background: #f0f0f0;
-                transform: scale(1.05);
-            }
-
-            /* How It Works Section */
-            .how-it-works {
-                margin-top: 6rem;
-                padding: 3rem 0;
-            }
-
-            .how-it-works-title {
-                font-size: 2.5rem;
-                font-weight: 700;
-                color: #000000;
-                text-align: center;
-                margin-bottom: 1rem;
-            }
-
-            .how-it-works-subtitle {
-                font-size: 1rem;
-                color: #666666;
-                text-align: center;
-                margin-bottom: 3.5rem;
-            }
-
-            .steps-container {
-                display: grid;
-                grid-template-columns: repeat(4, 1fr);
-                gap: 2rem;
-                margin-bottom: 4rem;
-            }
-
-            .step-item {
-                text-align: center;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-            }
-
-            .step-icon {
-                width: 70px;
-                height: 70px;
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                border-radius: 8px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 2rem;
-                margin-bottom: 1rem;
-            }
-
-            .step-number {
-                font-size: 1.2rem;
-                font-weight: 700;
-                color: #667eea;
-                margin-bottom: 0.5rem;
-            }
-
-            .step-title {
-                font-size: 1.2rem;
-                font-weight: 700;
-                color: #000000;
-                margin-bottom: 0.8rem;
-            }
-
-            .step-description {
-                font-size: 0.9rem;
-                color: #666666;
-                line-height: 1.5;
-            }
-
-            /* Barangays Served Section */
-            .barangays-served {
-                margin-top: 4rem;
-                padding: 3rem 0;
-                text-align: center;
-            }
-
-            .barangays-title {
-                font-size: 2.2rem;
-                font-weight: 700;
-                color: #000000;
-                margin-bottom: 1rem;
-            }
-
-            .barangays-subtitle {
-                font-size: 0.95rem;
-                color: #000000;
-                margin-bottom: 2rem;
-            }
-
-            .barangays-list {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 0.8rem;
-                justify-content: center;
-                margin-top: 2rem;
-            }
-
-            .barangay-capsule {
-                background: #ffffff;
-                color: #000000;
-                border: 2px solid #000000;
-                padding: 0.7rem 1.4rem;
-                border-radius: 25px;
-                font-size: 0.85rem;
-                font-weight: 500;
-                display: inline-block;
-                white-space: nowrap;
-            }
-
-            /* Content Sections */
-            .content-section {
-                background: white;
-                padding: 2.5rem;
-                border-radius: 12px;
-                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-                line-height: 1.8;
-            }
-
-            .content-section h2 {
-                font-size: 1.8rem;
-                color: #333333;
-                margin-bottom: 1rem;
-                font-weight: 600;
-            }
-
-            .content-section p {
-                color: #666666;
-                font-size: 1rem;
-                line-height: 1.8;
-            }
-
-            /* ===== FOOTER STYLES ===== */
-            .footer-container {
-                background-color: #1a1a2e;
-                color: #ffffff;
-                padding: 3rem 2rem 1rem;
-            }
-
-            .footer-content {
-                max-width: 1400px;
-                margin: 0 auto;
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-                gap: 2rem;
-                margin-bottom: 2rem;
-            }
-
-            .footer-section h4 {
-                font-size: 1.1rem;
-                margin-bottom: 1rem;
-                color: #ffffff;
-                font-weight: 600;
-            }
-
-            .footer-section ul {
-                list-style: none;
-            }
-
-            .footer-section ul li {
-                margin-bottom: 0.75rem;
-            }
-
-            .footer-section a {
-                color: #cccccc;
-                text-decoration: none;
-                transition: color 0.3s ease;
-                font-size: 0.9rem;
-            }
-
-            .footer-section a:hover {
-                color: #667eea;
-            }
-
-            .footer-bottom {
-                text-align: center;
-                padding-top: 2rem;
-                border-top: 1px solid #444444;
-                color: #aaaaaa;
-                font-size: 0.9rem;
-            }
-
-            /* ===== RESPONSIVE DESIGN ===== */
-            @media (max-width: 768px) {
-                .header-content {
-                    flex-wrap: wrap;
-                    padding: 1rem;
-                    gap: 1rem;
-                }
-
-                .logo-section {
-                    width: 100%;
-                    order: 1;
-                    justify-content: center;
-                }
-
-                .logo-1 {
-                    width: 70px;
-                    height: 70px;
-                }
-
-                .logo-2 {
-                    max-width: 130px;
-                    height: 70px;
-                }
-
-                .nav-links {
-                    width: 100%;
-                    order: 3;
-                    gap: 1rem;
-                    flex-wrap: wrap;
-                    padding-top: 1rem;
-                    border-top: 1px solid #eeeeee;
-                }
-
-                .login-section {
-                    width: 100%;
-                    order: 2;
-                    text-align: center;
-                }
-
-                .hero-title {
-                    font-size: 2.8rem;
-                    margin-left: 1.5rem;
-                }
-
-                .hero-subtitle {
-                    font-size: 2.8rem;
-                    margin-right: 2rem;
-                }
-
-                .action-buttons {
-                    flex-wrap: wrap;
-                    gap: 1rem;
-                }
-
-                .btn-primary,
-                .btn-secondary {
-                    padding: 0.9rem 1.8rem;
-                    font-size: 0.9rem;
-                }
-
-                .content-section {
-                    padding: 1.5rem;
-                }
-
-                .content-section h2 {
-                    font-size: 1.4rem;
-                }
-
-                .cards-container {
-                    grid-template-columns: repeat(2, 1fr);
-                }
-
-                .services-category:nth-child(3) .cards-container {
-                    grid-template-columns: repeat(2, 1fr);
-                }
-
-                .steps-container {
-                    grid-template-columns: repeat(2, 1fr);
-                    gap: 1.5rem;
-                }
-
-                .how-it-works-title {
-                    font-size: 2rem;
-                }
-
-                .barangays-title {
-                    font-size: 1.8rem;
-                }
-
-                .barangay-capsule {
-                    font-size: 0.8rem;
-                    padding: 0.6rem 1.2rem;
-                    gap: 0.6rem;
-                }
-
-                .footer-content {
-                    grid-template-columns: repeat(2, 1fr);
-                }
-            }
-
-            @media (max-width: 480px) {
-                .header-content {
-                    padding: 0.75rem;
-                }
-
-                .logo-1 {
-                    width: 60px;
-                    height: 60px;
-                }
-
-                .logo-2 {
-                    max-width: 115px;
-                    height: 60px;
-                }
-
-                .nav-links {
-                    gap: 0.75rem;
-                }
-
-                .nav-link {
-                    font-size: 0.9rem;
-                }
-
-                .hero-title {
-                    font-size: 2rem;
-                    margin-left: 1rem;
-                }
-
-                .hero-subtitle {
-                    font-size: 2rem;
-                    margin-right: 1rem;
-                }
-
-                .action-buttons {
-                    flex-direction: column;
-                    gap: 0.75rem;
-                }
-
-                .btn-primary,
-                .btn-secondary {
-                    padding: 0.8rem 1.5rem;
-                    font-size: 0.85rem;
-                    width: 100%;
-                }
-
-                .content-section {
-                    padding: 1rem;
-                }
-
-                .cards-container {
-                    grid-template-columns: 1fr;
-                }
-
-                .services-category:nth-child(3) .cards-container {
-                    grid-template-columns: 1fr;
-                    max-width: 100%;
-                }
-
-                .steps-container {
-                    grid-template-columns: 1fr;
-                    gap: 1.5rem;
-                }
-
-                .how-it-works-title {
-                    font-size: 1.6rem;
-                    margin-top: 3rem;
-                }
-
-                .how-it-works-subtitle {
-                    font-size: 0.85rem;
-                    margin-bottom: 2rem;
-                }
-
-                .step-item {
-                    padding: 1rem;
-                }
-
-                .step-icon {
-                    width: 60px;
-                    height: 60px;
-                    font-size: 1.8rem;
-                }
-
-                .barangays-title {
-                    font-size: 1.4rem;
-                }
-
-                .barangays-subtitle {
-                    font-size: 0.85rem;
-                }
-
-                .barangay-capsule {
-                    font-size: 0.75rem;
-                    padding: 0.5rem 1rem;
-                    gap: 0.4rem;
-                }
-
-                .footer-content {
-                    grid-template-columns: 1fr;
-                }
-            }
-        </style>
-    </head>
-    <body style="margin: 0; padding: 0; font-family: 'Poppins', sans-serif;">
-        <!-- ===== HEADER ===== -->
-        <header class="header-container">
-            <div class="header-content">
-                <!-- Logo Area (Left) -->
-                <div class="logo-section">
-                    <img src="{{ asset('images/dart icon.png') }}" alt="Dart Icon" class="logo-1">
-                    <img src="{{ asset('images/DARTS LOGO.png') }}" alt="DARTS Logo" class="logo-2">
-                </div>
-
-                <!-- Navigation (Middle) -->
-                <nav class="nav-links">
-                    <a href="#home" class="nav-link">Home</a>
-                    <a href="#services" class="nav-link">Services</a>
-                    <a href="#request" class="nav-link">Request</a>
-                    <a href="#track" class="nav-link">Track</a>
-                </nav>
-
-                <!-- Login & Register Buttons (Right) -->
-                <div class="login-section">
-                    <a href="{{ route('login') }}" class="login-btn">Login</a>
-                    <a href="{{ route('register') }}" class="register-btn">Register</a>
-                </div>
-            </div>
-        </header>
-
-        <!-- ===== BODY/MAIN CONTENT ===== -->
-        <main class="main-body">
-            <div class="body-content">
-                <!-- Hero Section -->
-                <section class="hero-section">
-                    <h1 class="hero-title left-aligned"><span class="serving-text">Serving</span> <span class="city-text">Valencia City,</span></h1>
-                    <p class="hero-subtitle right-aligned">One Request at a time.</p>
-                    
-                    <!-- Action Buttons -->
-                    <div class="action-buttons">
-                        <a href="#" class="btn-primary">Get Started Free</a>
-                        <a href="#" class="btn-secondary">See how it works</a>
-                    </div>
-                </section>
-
-                <!-- What We Offer Section -->
-                <section class="what-we-offer">
-                    <p class="what-we-offer-heading">What we offer</p>
-                    <h2 class="available-services-heading">Available Barangay Services</h2>
-                    <p class="service-description">Select a service to get started. All requests are processed within 1-3 business days.</p>
-
-                    <!-- Certificate Services -->
-                    <div class="services-category">
-                        <h3 class="services-category-title">Certificate Services</h3>
-                        <div class="cards-container">
-                            <!-- Card 1: Barangay Certificate -->
-                            <div class="service-card">
-                                <div class="card-image-placeholder">📄</div>
-                                <h4 class="card-title">Barangay Certificate</h4>
-                                <p class="card-subtitle">Official certificate of good standing from your barangay.</p>
-                                <a href="#" class="card-button">Request Now</a>
-                            </div>
-
-                            <!-- Card 2: Certificate of Indigency -->
-                            <div class="service-card">
-                                <div class="card-image-placeholder">📋</div>
-                                <h4 class="card-title">Certificate of Indigency</h4>
-                                <p class="card-subtitle">Proof of eligibility for assistance programs.</p>
-                                <a href="#" class="card-button">Request Now</a>
-                            </div>
-
-                            <!-- Card 3: Certificate of Residency -->
-                            <div class="service-card">
-                                <div class="card-image-placeholder">🏠</div>
-                                <h4 class="card-title">Certificate of Residency</h4>
-                                <p class="card-subtitle">Confirms your address within the barangay.</p>
-                                <a href="#" class="card-button">Request Now</a>
-                            </div>
-
-                            <!-- Card 4: First-Time Job Seeker -->
-                            <div class="service-card">
-                                <div class="card-image-placeholder">💼</div>
-                                <h4 class="card-title">First-Time Job Seeker</h4>
-                                <p class="card-subtitle">For residents applying for their first job.</p>
-                                <a href="#" class="card-button">Request Now</a>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Assistance Services -->
-                    <div class="services-category">
-                        <h3 class="services-category-title">Assistance Services</h3>
-                        <div class="cards-container">
-                            <!-- Card 5: Educational Assistance -->
-                            <div class="service-card">
-                                <div class="card-image-placeholder">🎓</div>
-                                <h4 class="card-title">Educational Assistance</h4>
-                                <p class="card-subtitle">Financial support for your education needs.</p>
-                                <a href="#" class="card-button">Request Now</a>
-                            </div>
-
-                            <!-- Card 6: Medical Assistance -->
-                            <div class="service-card">
-                                <div class="card-image-placeholder">⚕️</div>
-                                <h4 class="card-title">Medical Assistance</h4>
-                                <p class="card-subtitle">Financial aid for medical and hospital expenses.</p>
-                                <a href="#" class="card-button">Request Now</a>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- How It Works Section -->
-                    <div class="how-it-works">
-                        <h2 class="how-it-works-title">How it works</h2>
-                        <p class="how-it-works-subtitle">four simple steps to get your barangay documents</p>
-
-                        <div class="steps-container">
-                            <!-- Step 1 -->
-                            <div class="step-item">
-                                <div class="step-icon">📝</div>
-                                <div class="step-number">Step 1</div>
-                                <h3 class="step-title">Submit Online</h3>
-                                <p class="step-description">Fill out the form and upload your documents from any device.</p>
-                            </div>
-
-                            <!-- Step 2 -->
-                            <div class="step-item">
-                                <div class="step-icon">👁️</div>
-                                <div class="step-number">Step 2</div>
-                                <h3 class="step-title">Track in Real-Time</h3>
-                                <p class="step-description">Monitor your request status with real-time notifications</p>
-                            </div>
-
-                            <!-- Step 3 -->
-                            <div class="step-item">
-                                <div class="step-icon">🔔</div>
-                                <div class="step-number">Step 3</div>
-                                <h3 class="step-title">Get notified</h3>
-                                <p class="step-description">Recieve updates via email and in-web notifications</p>
-                            </div>
-
-                            <!-- Step 4 -->
-                            <div class="step-item">
-                                <div class="step-icon">✅</div>
-                                <div class="step-number">Step 4</div>
-                                <h3 class="step-title">Claim your document</h3>
-                                <p class="step-description">Pick up your signed document at the barangay hall.</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Barangays Served Section -->
-                    <div class="barangays-served">
-                        <h2 class="barangays-title">31 Barangays Served</h2>
-                        <p class="barangays-subtitle">Covering all barangays of Valencia City, Bukidnon.</p>
-                        
-                        <div class="barangays-list">
-                            <span class="barangay-capsule">Bagontaas</span>
-                            <span class="barangay-capsule">Banlag</span>
-                            <span class="barangay-capsule">Barobo</span>
-                            <span class="barangay-capsule">Batangan</span>
-                            <span class="barangay-capsule">Catumbalon</span>
-                            <span class="barangay-capsule">Colonia</span>
-                            <span class="barangay-capsule">Concepcion</span>
-                            <span class="barangay-capsule">Dagatkidavao</span>
-                            <span class="barangay-capsule">Guinuyoran</span>
-                            <span class="barangay-capsule">Kahapon</span>
-                            <span class="barangay-capsule">Laligan</span>
-                            <span class="barangay-capsule">Lilingayon</span>
-                            <span class="barangay-capsule">Lourdes</span>
-                            <span class="barangay-capsule">Lumbayao</span>
-                            <span class="barangay-capsule">Lumbo</span>
-                            <span class="barangay-capsule">Lurugan</span>
-                            <span class="barangay-capsule">Maapag</span>
-                            <span class="barangay-capsule">Mabuhay</span>
-                            <span class="barangay-capsule">Mailag</span>
-                            <span class="barangay-capsule">Mt. Nebo</span>
-                            <span class="barangay-capsule">Nabag-o</span>
-                            <span class="barangay-capsule">Pinatilaan</span>
-                            <span class="barangay-capsule">Poblacion</span>
-                            <span class="barangay-capsule">San Carlos</span>
-                            <span class="barangay-capsule">San Isidro</span>
-                            <span class="barangay-capsule">Sinabuagan</span>
-                            <span class="barangay-capsule">Sinayawan</span>
-                            <span class="barangay-capsule">Sugod</span>
-                            <span class="barangay-capsule">Tongan-Tongan</span>
-                            <span class="barangay-capsule">Tugaya</span>
-                            <span class="barangay-capsule">Vintar</span>
-                        </div>
-                    </div>
-                </section>
-            </div>
-        </main>
-
-        <!-- ===== FOOTER ===== -->
-        <footer class="footer-container">
-            <div class="footer-content">
-                <div class="footer-section">
-                    <h4>About</h4>
-                    <ul>
-                        <li><a href="#">Company Info</a></li>
-                        <li><a href="#">Careers</a></li>
-                        <li><a href="#">Blog</a></li>
-                    </ul>
-                </div>
-
-                <div class="footer-section">
-                    <h4>Support</h4>
-                    <ul>
-                        <li><a href="#">Help Center</a></li>
-                        <li><a href="#">Contact Us</a></li>
-                        <li><a href="#">FAQ</a></li>
-                    </ul>
-                </div>
-
-                <div class="footer-section">
-                    <h4>Legal</h4>
-                    <ul>
-                        <li><a href="#">Privacy Policy</a></li>
-                        <li><a href="#">Terms of Service</a></li>
-                        <li><a href="#">Cookie Policy</a></li>
-                    </ul>
-                </div>
-
-                <div class="footer-section">
-                    <h4>Follow Us</h4>
-                    <ul>
-                        <li><a href="#">Twitter</a></li>
-                        <li><a href="#">Facebook</a></li>
-                        <li><a href="#">LinkedIn</a></li>
-                    </ul>
-                </div>
-            </div>
-
-            <div class="footer-bottom">
-                <p>&copy; {{ date('Y') }} {{ config('app.name', 'Laravel') }}. All rights reserved.</p>
-            </div>
-        </footer>
-    </body>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>DARTS – Barangay Request & Tracking System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --purple: #7C3AED;
+      --purple-light: #A78BFA;
+      --purple-pale: #EDE9FE;
+      --purple-mid: #C4B5FD;
+      --bg: #F9FAFB;
+      --card-bg: #EDE9FE;
+      --text: #1F1F1F;
+      --text-muted: #6B7280;
+      --white: #FFFFFF;
+      --dark: #111827;
+      --radius-card: 18px;
+      --radius-pill: 999px;
+      --shadow-sm: 0 2px 8px rgba(124,58,237,0.08);
+      --shadow-md: 0 8px 32px rgba(124,58,237,0.14);
+      --shadow-lg: 0 16px 48px rgba(124,58,237,0.20);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow-x: hidden;
+    }
+
+    /* ── NAVBAR ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(124,58,237,0.08);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 5%;
+      height: 66px;
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+
+    .nav-logo-icon {
+      width: 36px; height: 36px;
+      background: var(--purple);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .nav-logo-icon svg { width: 20px; height: 20px; fill: white; }
+
+    .nav-logo-text {
+      font-family: 'Sora', sans-serif;
+      font-weight: 800;
+      font-size: 1.18rem;
+      color: var(--purple);
+      letter-spacing: 0.04em;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 32px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      text-decoration: none;
+      font-size: 0.92rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      transition: color 0.2s;
+      position: relative;
+      padding-bottom: 2px;
+    }
+
+    .nav-links a::after {
+      content: '';
+      position: absolute;
+      bottom: -2px; left: 0;
+      width: 0; height: 2px;
+      background: var(--purple);
+      border-radius: 2px;
+      transition: width 0.25s ease;
+    }
+
+    .nav-links a:hover { color: var(--purple); }
+    .nav-links a:hover::after { width: 100%; }
+    .nav-links a.active { color: var(--purple); }
+    .nav-links a.active::after { width: 100%; }
+
+    .nav-actions { display: flex; gap: 10px; align-items: center; }
+
+    .btn-outline {
+      padding: 8px 22px;
+      border: 1.5px solid var(--purple);
+      color: var(--purple);
+      background: transparent;
+      border-radius: var(--radius-pill);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-decoration: none;
+    }
+
+    .btn-outline:hover {
+      background: var(--purple-pale);
+    }
+
+    .btn-filled {
+      padding: 8px 22px;
+      background: var(--purple);
+      color: white;
+      border: 1.5px solid var(--purple);
+      border-radius: var(--radius-pill);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-decoration: none;
+      box-shadow: 0 4px 14px rgba(124,58,237,0.3);
+    }
+
+    .btn-filled:hover {
+      background: #6D28D9;
+      box-shadow: 0 6px 20px rgba(124,58,237,0.4);
+      transform: translateY(-1px);
+    }
+
+    /* ── HERO ── */
+    #hero {
+      min-height: 100vh;
+      background: linear-gradient(160deg, #7C3AED 0%, #9D60F5 20%, #C4B5FD 52%, #EDE9FE 72%, #F9FAFB 100%);
+      display: flex;
+      align-items: center;
+      padding: 100px 5% 60px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    #hero::before {
+      content: '';
+      position: absolute;
+      top: -120px; right: -120px;
+      width: 520px; height: 520px;
+      background: radial-gradient(circle, rgba(167,139,250,0.25) 0%, transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    #hero::after {
+      content: '';
+      position: absolute;
+      bottom: -80px; left: 5%;
+      width: 300px; height: 300px;
+      background: radial-gradient(circle, rgba(196,181,253,0.18) 0%, transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .hero-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 40px;
+    }
+
+    .hero-content { flex: 1; max-width: 560px; }
+
+    .hero-heading {
+      font-family: 'Sora', sans-serif;
+      font-size: clamp(3rem, 6vw, 5.2rem);
+      font-weight: 800;
+      line-height: 1.05;
+      margin-bottom: 18px;
+    }
+
+    .hero-heading .word-request { color: #1F1F1F; }
+    .hero-heading .word-track { color: #001e98; }
+    .hero-heading .word-receive { color: #fffad8; }
+
+    .hero-subtitle {
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: rgba(255,255,255,0.9);
+      margin-bottom: 36px;
+      letter-spacing: 0.01em;
+    }
+
+    .hero-btns { display: flex; gap: 14px; flex-wrap: wrap; }
+
+    .hero-btns .btn-hero-filled {
+      padding: 14px 30px;
+      background: var(--purple);
+      color: white;
+      border: 2px solid var(--purple);
+      border-radius: var(--radius-pill);
+      font-family: 'Sora', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      text-decoration: none;
+      box-shadow: 0 6px 24px rgba(124,58,237,0.35);
+    }
+
+    .hero-btns .btn-hero-filled:hover {
+      background: #6D28D9;
+      transform: translateY(-2px);
+      box-shadow: 0 10px 32px rgba(124,58,237,0.45);
+    }
+
+    .hero-btns .btn-hero-outline {
+      padding: 14px 30px;
+      background: rgba(255,255,255,0.15);
+      color: var(--text);
+      border: 2px solid rgba(255,255,255,0.55);
+      border-radius: var(--radius-pill);
+      font-family: 'Sora', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      text-decoration: none;
+      backdrop-filter: blur(8px);
+    }
+
+    .hero-btns .btn-hero-outline:hover {
+      background: rgba(255,255,255,0.28);
+      border-color: rgba(255,255,255,0.8);
+      transform: translateY(-2px);
+    }
+
+    .hero-image {
+      flex: 1;
+      max-width: 480px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .hero-image-wrap {
+      position: relative;
+      width: 100%;
+      max-width: 420px;
+    }
+
+    .hero-img-placeholder {
+      width: 100%;
+      border-radius: 24px;
+      box-shadow: 0 24px 64px rgba(124,58,237,0.22);
+      display: block;
+      animation: float 4s ease-in-out infinite;
+    }
+
+    .hero-img-placeholder img {
+      width: 100%;
+      border-radius: 24px;
+      display: block;
+    }
+
+    .hero-doc-visual {
+      width: 100%;
+      max-width: 380px;
+      margin: 0 auto;
+      background: rgba(255,255,255,0.18);
+      border: 1.5px solid rgba(255,255,255,0.4);
+      border-radius: 24px;
+      padding: 32px;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 24px 64px rgba(124,58,237,0.22);
+      animation: float 4s ease-in-out infinite;
+    }
+
+    .hero-doc-visual .doc-icon {
+      width: 64px; height: 64px;
+      background: var(--purple);
+      border-radius: 16px;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 20px;
+      box-shadow: 0 8px 24px rgba(124,58,237,0.4);
+    }
+
+    .hero-doc-visual .doc-icon svg { width: 32px; height: 32px; fill: white; }
+
+    .doc-lines { display: flex; flex-direction: column; gap: 10px; }
+
+    .doc-line {
+      height: 10px;
+      border-radius: 6px;
+      background: rgba(255,255,255,0.5);
+    }
+
+    .doc-line.short { width: 60%; }
+    .doc-line.medium { width: 80%; }
+    .doc-line.long { width: 100%; }
+
+    .doc-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      margin-top: 22px;
+      background: rgba(255,255,255,0.3);
+      border-radius: var(--radius-pill);
+      padding: 8px 16px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .doc-badge-dot {
+      width: 8px; height: 8px;
+      background: #22C55E;
+      border-radius: 50%;
+      animation: pulse-dot 1.5s ease-in-out infinite;
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.4); opacity: 0.6; }
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-14px); }
+    }
+
+    .hero-content .hero-heading,
+    .hero-content .hero-subtitle,
+    .hero-content .hero-btns {
+      opacity: 0;
+      animation: slideUp 0.7s ease forwards;
+    }
+
+    .hero-content .hero-heading { animation-delay: 0.1s; }
+    .hero-content .hero-subtitle { animation-delay: 0.28s; }
+    .hero-content .hero-btns { animation-delay: 0.44s; }
+
+    .hero-image { opacity: 0; animation: fadeInRight 0.8s ease 0.3s forwards; }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(28px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeInRight {
+      from { opacity: 0; transform: translateX(32px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    /* ── SECTION COMMONS ── */
+    section { padding: 90px 5%; }
+
+    .container { max-width: 1200px; margin: 0 auto; }
+
+    .section-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--purple);
+      margin-bottom: 12px;
+    }
+
+    .section-heading {
+      font-family: 'Sora', sans-serif;
+      font-size: clamp(1.8rem, 3vw, 2.6rem);
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 12px;
+    }
+
+    .section-sub {
+      font-size: 1rem;
+      color: var(--text-muted);
+      max-width: 540px;
+      line-height: 1.6;
+    }
+
+    /* ── SERVICES ── */
+    #services { background: var(--white); }
+
+    .services-header { margin-bottom: 52px; }
+
+    .category-label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+      letter-spacing: 0.02em;
+    }
+
+    .category-label .cat-icon {
+      width: 26px; height: 26px;
+      background: var(--purple-pale);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .category-label .cat-icon svg { width: 14px; height: 14px; fill: var(--purple); }
+
+    .cards-grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      margin-bottom: 44px;
+    }
+
+    .cards-grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+      max-width: 640px;
+    }
+
+    .service-card {
+      background: var(--card-bg);
+      border-radius: var(--radius-card);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      cursor: pointer;
+      transition: transform 0.22s ease, box-shadow 0.22s ease, background 0.22s ease;
+      text-decoration: none;
+      color: inherit;
+      border: 1.5px solid transparent;
+    }
+
+    .service-card:hover {
+      transform: translateY(-5px);
+      box-shadow: var(--shadow-lg);
+      background: #E9E3FF;
+      border-color: rgba(124,58,237,0.15);
+    }
+
+    .card-icon {
+      width: 42px; height: 42px;
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .card-icon.doc-type { background: rgba(124,58,237,0.12); }
+    .card-icon.doc-type svg { fill: var(--purple); width: 20px; height: 20px; }
+
+    .card-icon.assist-type { background: rgba(217,119,6,0.12); }
+    .card-icon.assist-type svg { fill: #D97706; width: 20px; height: 20px; }
+
+    .card-title {
+      font-family: 'Sora', sans-serif;
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: var(--text);
+    }
+
+    .card-desc {
+      font-size: 0.84rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+      flex: 1;
+    }
+
+    .card-cta {
+      font-size: 0.84rem;
+      font-weight: 700;
+      color: var(--purple);
+      display: flex; align-items: center; gap: 4px;
+      margin-top: 4px;
+    }
+
+    .card-cta svg { width: 14px; height: 14px; fill: var(--purple); transition: transform 0.2s; }
+
+    .service-card:hover .card-cta svg { transform: translateX(4px); }
+
+    /* ── HOW IT WORKS ── */
+    #how-it-works { background: #F3F4F6; }
+
+    .how-header { text-align: center; margin-bottom: 60px; }
+    .how-header .section-sub { margin: 0 auto; }
+
+    .steps-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+      position: relative;
+    }
+
+    .steps-row::before {
+      content: '';
+      position: absolute;
+      top: 36px;
+      left: calc(12.5% + 20px);
+      right: calc(12.5% + 20px);
+      height: 2px;
+      background: linear-gradient(to right, var(--purple-mid), var(--purple-light));
+      z-index: 0;
+    }
+
+    .step-card {
+      background: var(--white);
+      border-radius: var(--radius-card);
+      padding: 32px 24px 28px;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+      border: 1.5px solid rgba(124,58,237,0.08);
+    }
+
+    .step-card:hover {
+      transform: translateY(-6px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .step-num {
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      color: var(--purple-light);
+      text-transform: uppercase;
+      margin-bottom: 16px;
+      transition: color 0.25s, font-weight 0.25s;
+    }
+
+    .step-card:hover .step-num {
+      color: var(--purple);
+      font-weight: 800;
+    }
+
+    .step-icon {
+      width: 64px; height: 64px;
+      background: var(--purple);
+      border-radius: 18px;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 20px;
+      box-shadow: 0 8px 24px rgba(124,58,237,0.3);
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .step-card:hover .step-icon {
+      transform: scale(1.1);
+      box-shadow: 0 12px 32px rgba(124,58,237,0.45);
+    }
+
+    .step-icon svg { width: 28px; height: 28px; fill: white; }
+
+    .step-title {
+      font-family: 'Sora', sans-serif;
+      font-weight: 700;
+      font-size: 1rem;
+      margin-bottom: 10px;
+      color: var(--text);
+    }
+
+    .step-desc {
+      font-size: 0.84rem;
+      color: var(--text-muted);
+      line-height: 1.55;
+    }
+
+    /* ── BARANGAYS ── */
+    #barangays { background: var(--white); text-align: center; }
+
+    #barangays .section-heading,
+    #barangays .section-sub { text-align: center; margin: 0 auto 40px; }
+
+    .tags-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .barangay-tag {
+      padding: 8px 18px;
+      border: 1.5px solid #D1D5DB;
+      border-radius: var(--radius-pill);
+      font-size: 0.84rem;
+      font-weight: 500;
+      color: var(--text);
+      background: var(--white);
+      cursor: default;
+      transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+    }
+
+    .barangay-tag:hover {
+      background: var(--purple-pale);
+      color: var(--purple);
+      border-color: var(--purple-light);
+      transform: translateY(-2px);
+    }
+
+    /* ── CTA BANNER ── */
+    #cta {
+      background: var(--bg);
+      padding: 60px 5%;
+    }
+
+    .cta-inner {
+      background: linear-gradient(135deg, #7C3AED 0%, #6D28D9 60%, #5B21B6 100%);
+      border-radius: 28px;
+      padding: 70px 5%;
+      text-align: center;
+      max-width: 1100px;
+      margin: 0 auto;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(124,58,237,0.35);
+    }
+
+    .cta-inner::before {
+      content: '';
+      position: absolute;
+      top: -80px; right: -80px;
+      width: 300px; height: 300px;
+      background: radial-gradient(circle, rgba(196,181,253,0.25) 0%, transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .cta-inner::after {
+      content: '';
+      position: absolute;
+      bottom: -60px; left: -60px;
+      width: 250px; height: 250px;
+      background: radial-gradient(circle, rgba(91,33,182,0.4) 0%, transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .cta-heading {
+      font-family: 'Sora', sans-serif;
+      font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+      font-weight: 800;
+      color: white;
+      margin-bottom: 16px;
+      position: relative; z-index: 1;
+    }
+
+    .cta-sub {
+      font-size: 1rem;
+      color: rgba(255,255,255,0.8);
+      max-width: 520px;
+      margin: 0 auto 36px;
+      line-height: 1.6;
+      position: relative; z-index: 1;
+    }
+
+    .btn-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 16px 36px;
+      background: white;
+      color: var(--purple);
+      border: none;
+      border-radius: var(--radius-pill);
+      font-family: 'Sora', sans-serif;
+      font-size: 0.98rem;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.25s ease;
+      position: relative; z-index: 1;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    }
+
+    .btn-cta:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 14px 36px rgba(0,0,0,0.18);
+    }
+
+    .btn-cta svg { width: 16px; height: 16px; fill: var(--purple); }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--dark);
+      color: rgba(255,255,255,0.75);
+      padding: 70px 5% 0;
+    }
+
+    .footer-grid {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1.4fr 1fr 1fr 1.2fr;
+      gap: 48px;
+      padding-bottom: 60px;
+    }
+
+    .footer-col h4 {
+      font-family: 'Sora', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: white;
+      margin-bottom: 20px;
+      letter-spacing: 0.03em;
+    }
+
+    .footer-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .footer-brand-icon {
+      width: 34px; height: 34px;
+      background: var(--purple);
+      border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .footer-brand-icon svg { width: 18px; height: 18px; fill: white; }
+
+    .footer-brand-text {
+      font-family: 'Sora', sans-serif;
+      font-weight: 800;
+      font-size: 1.1rem;
+      color: white;
+    }
+
+    .footer-tagline {
+      font-size: 0.88rem;
+      font-weight: 500;
+      color: rgba(255,255,255,0.85);
+      margin-bottom: 10px;
+    }
+
+    .footer-desc {
+      font-size: 0.82rem;
+      color: rgba(255,255,255,0.5);
+      line-height: 1.6;
+    }
+
+    .footer-links { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+
+    .footer-links a {
+      text-decoration: none;
+      font-size: 0.88rem;
+      color: rgba(255,255,255,0.6);
+      transition: color 0.2s;
+    }
+
+    .footer-links a:hover { color: var(--purple-light); }
+
+    .contact-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.6);
+      margin-bottom: 13px;
+      line-height: 1.5;
+    }
+
+    .contact-item .contact-icon {
+      font-size: 0.95rem;
+      margin-top: 1px;
+      flex-shrink: 0;
+    }
+
+    .footer-bottom {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 22px 0;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      text-align: center;
+      font-size: 0.8rem;
+      color: rgba(255,255,255,0.35);
+    }
+
+    /* ── SCROLL REVEAL ── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.65s ease, transform 0.65s ease;
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .reveal-delay-1 { transition-delay: 0.1s; }
+    .reveal-delay-2 { transition-delay: 0.2s; }
+    .reveal-delay-3 { transition-delay: 0.3s; }
+    .reveal-delay-4 { transition-delay: 0.4s; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 1024px) {
+      .cards-grid-4 { grid-template-columns: repeat(2, 1fr); }
+      .steps-row { grid-template-columns: repeat(2, 1fr); }
+      .steps-row::before { display: none; }
+      .footer-grid { grid-template-columns: 1fr 1fr; gap: 36px; }
+    }
+
+    @media (max-width: 768px) {
+      .hero-inner { flex-direction: column; text-align: center; }
+      .hero-content { max-width: 100%; }
+      .hero-btns { justify-content: center; }
+      .hero-image { max-width: 340px; }
+      .cards-grid-4 { grid-template-columns: 1fr; }
+      .cards-grid-2 { grid-template-columns: 1fr; max-width: 100%; }
+      .steps-row { grid-template-columns: 1fr; }
+      .footer-grid { grid-template-columns: 1fr; }
+      .nav-links { display: none; }
+      nav { padding: 0 4%; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── NAVBAR ── -->
+<nav>
+  <a href="#hero" class="nav-logo">
+    <div class="nav-logo-icon">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+      </svg>
+    </div>
+    <span class="nav-logo-text">DARTS</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#hero" class="active">Home</a></li>
+    <li><a href="#services">Services</a></li>
+    <li><a href="#hero">Request</a></li>
+    <li><a href="#how-it-works">Track</a></li>
+  </ul>
+  <div class="nav-actions">
+    <a href="{{ route('login') }}" class="btn-outline">Log In</a>
+    <a href="{{ route('register') }}" class="btn-filled">Register</a>
+  </div>
+</nav>
+
+<!-- ── HERO ── -->
+<section id="hero">
+  <div class="hero-inner">
+    <div class="hero-content">
+      <h1 class="hero-heading">
+        <span class="word-request">Request.</span><br>
+        <span class="word-track">Track.</span><br>
+        <span class="word-receive">Receive.</span>
+      </h1>
+      <p class="hero-subtitle">Barangay Services Made Simple.</p>
+      <div class="hero-btns">
+        <a href="{{ route('register') }}" class="btn-hero-filled">Get Started Free</a>
+        <a href="#how-it-works" class="btn-hero-outline">See how it Works</a>
+      </div>
+    </div>
+    <div class="hero-image">
+      <img src="{{ asset('images/Photo-document.png') }}" class="hero-img-placeholder" alt="DARTS Hero" />
+    </div> 
+  </div>
+</section>
+
+<!-- ── SERVICES ── -->
+<section id="services">
+  <div class="container">
+    <div class="services-header reveal">
+      <p class="section-label">What We Offer</p>
+      <h2 class="section-heading">Available Barangay Services</h2>
+      <p class="section-sub">Select a service to get started. All requests are processed within 1-3 business days.</p>
+    </div>
+
+    <!-- Certificate Services -->
+    <div class="category-label reveal">
+      <div class="cat-icon">
+        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      </div>
+      Certificate services
+    </div>
+    <div class="cards-grid-4">
+      <a href="#" class="service-card reveal reveal-delay-1">
+        <div class="card-icon doc-type">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        </div>
+        <div class="card-title">Barangay Certificate</div>
+        <div class="card-desc">Official certificate of good standing from your barangay.</div>
+        <div class="card-cta">Request Now <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
+      </a>
+      <a href="#" class="service-card reveal reveal-delay-2">
+        <div class="card-icon doc-type">
+          <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+        <div class="card-title">Certificate of Indigency</div>
+        <div class="card-desc">Proof of eligibility for assistance programs.</div>
+        <div class="card-cta">Request Now <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
+      </a>
+      <a href="#" class="service-card reveal reveal-delay-3">
+        <div class="card-icon doc-type">
+          <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        </div>
+        <div class="card-title">Certificate of Residency</div>
+        <div class="card-desc">Confirms your address within the barangay.</div>
+        <div class="card-cta">Request Now <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
+      </a>
+      <a href="#" class="service-card reveal reveal-delay-4">
+        <div class="card-icon doc-type">
+          <svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+        </div>
+        <div class="card-title">First-Time Job Seeker</div>
+        <div class="card-desc">For residents applying for their first job.</div>
+        <div class="card-cta">Request Now <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
+      </a>
+    </div>
+
+    <!-- Assistance Services -->
+    <div class="category-label reveal">
+      <div class="cat-icon">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      </div>
+      Assistance services
+    </div>
+    <div class="cards-grid-2">
+      <a href="#" class="service-card reveal reveal-delay-1">
+        <div class="card-icon assist-type">
+          <svg viewBox="0 0 24 24"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+        </div>
+        <div class="card-title">Educational Assistance</div>
+        <div class="card-desc">Financial support for your education needs.</div>
+        <div class="card-cta">Request Now <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
+      </a>
+      <a href="#" class="service-card reveal reveal-delay-2">
+        <div class="card-icon assist-type">
+          <svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        </div>
+        <div class="card-title">Medical Assistance</div>
+        <div class="card-desc">Financial aid for medical and hospital expenses.</div>
+        <div class="card-cta">Request Now <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ── HOW IT WORKS ── -->
+<section id="how-it-works">
+  <div class="container">
+    <div class="how-header reveal">
+      <h2 class="section-heading">How It Works</h2>
+      <p class="section-sub">Four simple steps to get your barangay documents.</p>
+    </div>
+    <div class="steps-row">
+      <div class="step-card reveal reveal-delay-1">
+        <p class="step-num">Step 1</p>
+        <div class="step-icon">
+          <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </div>
+        <h3 class="step-title">Submit Online</h3>
+        <p class="step-desc">Fill out the form and upload your documents from any device.</p>
+      </div>
+      <div class="step-card reveal reveal-delay-2">
+        <p class="step-num">Step 2</p>
+        <div class="step-icon">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </div>
+        <h3 class="step-title">Track in Real-Time</h3>
+        <p class="step-desc">Monitor your request status with a visual timeline.</p>
+      </div>
+      <div class="step-card reveal reveal-delay-3">
+        <p class="step-num">Step 3</p>
+        <div class="step-icon">
+          <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        </div>
+        <h3 class="step-title">Get Notified</h3>
+        <p class="step-desc">Receive updates via email and in-app notifications.</p>
+      </div>
+      <div class="step-card reveal reveal-delay-4">
+        <p class="step-num">Step 4</p>
+        <div class="step-icon">
+          <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+        </div>
+        <h3 class="step-title">Claim Your Document</h3>
+        <p class="step-desc">Pick up your signed document at the barangay hall.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── BARANGAYS ── -->
+<section id="barangays">
+  <div class="container">
+    <h2 class="section-heading reveal" style="text-align:center;">31 Barangays Served</h2>
+    <p class="section-sub reveal" style="text-align:center; margin:0 auto 40px;">Covering all barangays of Valencia City, Bukidnon.</p>
+    <div class="tags-wrap reveal">
+      <span class="barangay-tag">Bagontaas</span>
+      <span class="barangay-tag">Banlag</span>
+      <span class="barangay-tag">Barobo</span>
+      <span class="barangay-tag">Batangan</span>
+      <span class="barangay-tag">Catumbalon</span>
+      <span class="barangay-tag">Colonia</span>
+      <span class="barangay-tag">Concepcion</span>
+      <span class="barangay-tag">Dagatkidavao</span>
+      <span class="barangay-tag">Guinuyoran</span>
+      <span class="barangay-tag">Kahapon</span>
+      <span class="barangay-tag">Laligan</span>
+      <span class="barangay-tag">Lilingayon</span>
+      <span class="barangay-tag">Lourdes</span>
+      <span class="barangay-tag">Lumbayao</span>
+      <span class="barangay-tag">Lumbo</span>
+      <span class="barangay-tag">Lurugan</span>
+      <span class="barangay-tag">Maapag</span>
+      <span class="barangay-tag">Mabuhay</span>
+      <span class="barangay-tag">Mailag</span>
+      <span class="barangay-tag">Mt. Nebo</span>
+      <span class="barangay-tag">Nabag-o</span>
+      <span class="barangay-tag">Pinatilan</span>
+      <span class="barangay-tag">Poblacion</span>
+      <span class="barangay-tag">San Carlos</span>
+      <span class="barangay-tag">San Isidro</span>
+      <span class="barangay-tag">Sinabuagan</span>
+      <span class="barangay-tag">Sinayawan</span>
+      <span class="barangay-tag">Sugod</span>
+      <span class="barangay-tag">Tongan-Tongan</span>
+      <span class="barangay-tag">Tugaya</span>
+      <span class="barangay-tag">Vintar</span>
+    </div>
+  </div>
+</section>
+
+<!-- ── CTA ── -->
+<section id="cta">
+  <div class="cta-inner reveal">
+    <h2 class="cta-heading">Start Your Request in Minutes.</h2>
+    <p class="cta-sub">Join thousands of Valencia City residents who are accessing barangay services the modern way.</p>
+    <a href="{{ route('register') }}" class="btn-cta">
+      Create Your Account
+      <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    </a>
+  </div>
+</section>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <div class="footer-grid">
+    <!-- Brand -->
+    <div class="footer-col">
+      <div class="footer-brand">
+        <div class="footer-brand-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        </div>
+        <span class="footer-brand-text">DARTS Valencia</span>
+      </div>
+      <p class="footer-tagline">Barangay Services Made Simple.</p>
+      <p class="footer-desc">A digital service platform for Valencia City, Bukidnon. Empowering citizens through transparency and digital innovation.</p>
+    </div>
+
+    <!-- Quick Links -->
+    <div class="footer-col">
+      <h4>Quick Links</h4>
+      <ul class="footer-links">
+        <li><a href="#hero">Home</a></li>
+        <li><a href="#services">Services</a></li>
+        <li><a href="#how-it-works">How It Works</a></li>
+        <li><a href="#">Track My Request</a></li>
+      </ul>
+    </div>
+
+    <!-- Support -->
+    <div class="footer-col">
+      <h4>Support</h4>
+      <ul class="footer-links">
+        <li><a href="#">FAQs</a></li>
+        <li><a href="#">Contact Us</a></li>
+        <li><a href="#">Privacy Policy</a></li>
+        <li><a href="#">Terms of Service</a></li>
+      </ul>
+    </div>
+
+    <!-- Contact -->
+    <div class="footer-col">
+      <h4>Contact Info</h4>
+      <div class="contact-item">
+        <span class="contact-icon">📍</span>
+        <span>Valencia City, Bukidnon, Philippines</span>
+      </div>
+      <div class="contact-item">
+        <span class="contact-icon">📧</span>
+        <span>support@darts.gov.ph</span>
+      </div>
+      <div class="contact-item">
+        <span class="contact-icon">🕐</span>
+        <span>Mon–Fri, 8:00 AM – 5:00 PM</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-bottom">
+    © 2025 DARTS – Barangay Request & Tracking System. All rights reserved.
+  </div>
+</footer>
+
+<script>
+  // ── Scroll Reveal ──
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.12 });
+  reveals.forEach(el => observer.observe(el));
+
+  // ── Active nav link on scroll ──
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('.nav-links a');
+
+  window.addEventListener('scroll', () => {
+    let current = '';
+    sections.forEach(section => {
+      const top = section.offsetTop - 80;
+      if (window.scrollY >= top) current = section.id;
+    });
+    navLinks.forEach(a => {
+      a.classList.remove('active');
+      if (a.getAttribute('href') === '#' + current) a.classList.add('active');
+    });
+  });
+</script>
+
+</body>
 </html>
