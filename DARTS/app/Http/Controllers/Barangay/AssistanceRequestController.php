@@ -3,23 +3,20 @@
 namespace App\Http\Controllers\Barangay;
 
 use App\Http\Controllers\Controller;
-use App\Models\DocumentRequestDetail;
-use App\Models\GeneratedDocument;
-use App\Models\PaymentRecord;
+use App\Models\AssistanceRequestDetail;
+use App\Models\ReferralRecord;
 use App\Models\ReleaseRecord;
 use App\Models\RequestStatusLog;
 use App\Models\ServiceRequest;
 use App\Support\AuditTrail;
-use App\Support\DocumentNumber;
 use App\Support\ResidentNotifier;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
-class DocumentRequestController extends Controller
+class AssistanceRequestController extends Controller
 {
     public function index(Request $request): View
     {
@@ -30,22 +27,23 @@ class DocumentRequestController extends Controller
 
         $status = $request->string('status')->toString();
         $search = trim($request->string('search')->toString());
+        $likeOperator = $this->likeOperator();
 
-        $documents = ServiceRequest::query()
-            ->with(['residentProfile.user', 'serviceType', 'barangay', 'documentDetail'])
+        $assistanceRequests = ServiceRequest::query()
+            ->with(['residentProfile.user', 'serviceType', 'barangay', 'assistanceDetail'])
             ->where('barangay_id', $barangayId)
-            ->where('request_category', 'document')
+            ->where('request_category', 'assistance')
             ->when($status !== '', fn ($query) => $query->where('current_status', $status))
-            ->when($search !== '', function ($query) use ($search) {
-                $query->where(function ($subQuery) use ($search) {
+            ->when($search !== '', function ($query) use ($search, $likeOperator) {
+                $query->where(function ($subQuery) use ($search, $likeOperator) {
                     $subQuery
-                        ->where('reference_number', 'ilike', "%{$search}%")
-                        ->orWhereHas('residentProfile', function ($profileQuery) use ($search) {
+                        ->where('reference_number', $likeOperator, "%{$search}%")
+                        ->orWhereHas('residentProfile', function ($profileQuery) use ($search, $likeOperator) {
                             $profileQuery
-                                ->where('first_name', 'ilike', "%{$search}%")
-                                ->orWhere('middle_name', 'ilike', "%{$search}%")
-                                ->orWhere('last_name', 'ilike', "%{$search}%")
-                                ->orWhere('suffix', 'ilike', "%{$search}%");
+                                ->where('first_name', $likeOperator, "%{$search}%")
+                                ->orWhere('middle_name', $likeOperator, "%{$search}%")
+                                ->orWhere('last_name', $likeOperator, "%{$search}%")
+                                ->orWhere('suffix', $likeOperator, "%{$search}%");
                         });
                 });
             })
@@ -53,11 +51,11 @@ class DocumentRequestController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        return view('barangay.documents.index', [
-            'documents' => $documents,
+        return view('barangay.assistance.index', [
+            'assistanceRequests' => $assistanceRequests,
             'selectedStatus' => $status,
             'search' => $search,
-            'statusOptions' => config('portal.document_request_statuses'),
+            'statusOptions' => config('portal.assistance_request_statuses'),
         ]);
     }
 
@@ -69,21 +67,19 @@ class DocumentRequestController extends Controller
             'residentProfile.user',
             'residentProfile.barangay',
             'serviceType',
-            'documentDetail',
+            'assistanceDetail',
             'attachments.uploadedBy',
-            'paymentRecords.receivedBy',
-            'generatedDocument.preparedBy',
-            'generatedDocument.printedBy',
+            'referralRecords.referredBy',
             'releaseRecord.releasedBy',
             'statusLogs.actedBy',
         ]);
 
-        $this->ensureSameBarangayDocument($user->officialProfile?->barangay_id, $serviceRequest);
+        $this->ensureSameBarangayAssistance($user->officialProfile?->barangay_id, $serviceRequest);
 
-        return view('barangay.documents.show', [
+        return view('barangay.assistance.show', [
             'serviceRequest' => $serviceRequest,
             'residentProfile' => $serviceRequest->residentProfile,
-            'documentDetail' => $serviceRequest->documentDetail,
+            'assistanceDetail' => $serviceRequest->assistanceDetail,
         ]);
     }
 
@@ -94,40 +90,45 @@ class DocumentRequestController extends Controller
         $serviceRequest->load([
             'residentProfile.user',
             'serviceType',
-            'documentDetail',
-            'paymentRecords',
-            'generatedDocument',
+            'assistanceDetail',
+            'referralRecords',
             'releaseRecord',
         ]);
 
-        $this->ensureSameBarangayDocument($user->officialProfile?->barangay_id, $serviceRequest);
+        $this->ensureSameBarangayAssistance($user->officialProfile?->barangay_id, $serviceRequest);
 
         $validated = $request->validate([
             'next_status' => [
                 'required',
                 Rule::in([
                     'under_review',
+                    'needs_additional_documents',
+                    'for_assessment',
                     'approved',
-                    'for_payment',
-                    'for_printing',
-                    'ready_for_pickup',
+                    'referred',
+                    'ready_for_claim',
                     'released',
+                    'closed',
                     'rejected',
                     'cancelled',
                 ]),
             ],
             'remarks' => ['nullable', 'string', 'max:5000'],
 
-            'purpose' => ['nullable', 'string', 'max:2000'],
-            'cedula_number' => ['nullable', 'string', 'max:255'],
-            'cedula_date' => ['nullable', 'date'],
-            'cedula_place' => ['nullable', 'string', 'max:255'],
-            'years_of_residency' => ['nullable', 'integer', 'min:0', 'max:150'],
-            'months_of_residency' => ['nullable', 'integer', 'min:0', 'max:11'],
-            'oath_required' => ['nullable', 'boolean'],
+            'case_summary' => ['nullable', 'string', 'max:5000'],
+            'requested_amount' => ['nullable', 'numeric', 'min:0'],
+            'assessment_date' => ['nullable', 'date'],
+            'assessment_notes' => ['nullable', 'string', 'max:5000'],
+            'claimant_name' => ['nullable', 'string', 'max:255'],
+            'relationship_to_beneficiary' => ['nullable', 'string', 'max:255'],
 
-            'payment_amount' => ['nullable', 'numeric', 'min:0'],
-            'official_receipt_number' => ['nullable', 'string', 'max:255'],
+            'referred_to' => [
+                Rule::requiredIf(fn () => $request->input('next_status') === 'referred'),
+                'nullable',
+                'string',
+                'max:255',
+            ],
+            'referral_notes' => ['nullable', 'string', 'max:5000'],
 
             'released_to_name' => [
                 Rule::requiredIf(fn () => $request->input('next_status') === 'released'),
@@ -152,92 +153,39 @@ class DocumentRequestController extends Controller
             ],
         ]);
 
-        if (
-            $serviceRequest->serviceType->requires_payment &&
-            in_array($validated['next_status'], ['for_printing', 'ready_for_pickup', 'released'], true) &&
-            (
-                empty($validated['payment_amount']) ||
-                empty($validated['official_receipt_number'])
-            )
-        ) {
-            throw ValidationException::withMessages([
-                'official_receipt_number' => 'Payment amount and official receipt number are required before printing, pickup, or release.',
-            ]);
-        }
-
         $oldStatus = $serviceRequest->current_status;
 
         DB::transaction(function () use ($request, $validated, $user, $serviceRequest, $oldStatus): void {
             $nextStatus = $validated['next_status'];
             $fromStatus = $serviceRequest->current_status;
 
-            $documentDetail = $serviceRequest->documentDetail ?: DocumentRequestDetail::create([
+            $assistanceDetail = $serviceRequest->assistanceDetail ?: AssistanceRequestDetail::create([
                 'request_id' => $serviceRequest->id,
             ]);
 
-            $documentDetail->update([
-                'purpose' => $validated['purpose'] ?? $documentDetail->purpose,
-                'cedula_number' => $validated['cedula_number'] ?? $documentDetail->cedula_number,
-                'cedula_date' => $validated['cedula_date'] ?? $documentDetail->cedula_date,
-                'cedula_place' => $validated['cedula_place'] ?? $documentDetail->cedula_place,
-                'years_of_residency' => $validated['years_of_residency'] ?? $documentDetail->years_of_residency,
-                'months_of_residency' => $validated['months_of_residency'] ?? $documentDetail->months_of_residency,
-                'oath_required' => $request->boolean('oath_required'),
-                'payment_amount' => $serviceRequest->serviceType->requires_payment
-                    ? ($validated['payment_amount'] ?? $documentDetail->payment_amount)
-                    : null,
-                'official_receipt_number' => $serviceRequest->serviceType->requires_payment
-                    ? ($validated['official_receipt_number'] ?? $documentDetail->official_receipt_number)
-                    : null,
-                'prepared_by_user_id' => in_array($nextStatus, ['for_printing', 'ready_for_pickup', 'released'], true)
-                    ? $user->id
-                    : $documentDetail->prepared_by_user_id,
-                'printed_at' => in_array($nextStatus, ['ready_for_pickup', 'released'], true)
-                    ? now()
-                    : $documentDetail->printed_at,
+            $assistanceDetail->update([
+                'case_summary' => $validated['case_summary'] ?? $assistanceDetail->case_summary,
+                'requested_amount' => array_key_exists('requested_amount', $validated)
+                    ? $validated['requested_amount']
+                    : $assistanceDetail->requested_amount,
+                'assessment_date' => $validated['assessment_date'] ?? $assistanceDetail->assessment_date,
+                'assessment_notes' => $validated['assessment_notes'] ?? $assistanceDetail->assessment_notes,
+                'claimant_name' => $validated['claimant_name'] ?? $assistanceDetail->claimant_name,
+                'relationship_to_beneficiary' => $validated['relationship_to_beneficiary'] ?? $assistanceDetail->relationship_to_beneficiary,
+                'referral_destination' => $nextStatus === 'referred'
+                    ? $validated['referred_to']
+                    : $assistanceDetail->referral_destination,
             ]);
 
-            if ($serviceRequest->serviceType->requires_payment) {
-                $paymentRecord = PaymentRecord::query()->firstOrNew([
+            if ($nextStatus === 'referred') {
+                ReferralRecord::create([
                     'request_id' => $serviceRequest->id,
+                    'referred_to' => $validated['referred_to'],
+                    'referral_notes' => $validated['referral_notes'] ?? null,
+                    'referral_status' => 'referred',
+                    'referred_at' => now(),
+                    'referred_by_user_id' => $user->id,
                 ]);
-
-                $paymentRecord->fill([
-                    'amount' => $validated['payment_amount'] ?? $paymentRecord->amount ?? 0,
-                    'payment_status' => in_array($nextStatus, ['for_printing', 'ready_for_pickup', 'released'], true)
-                        ? 'paid'
-                        : 'pending',
-                    'official_receipt_number' => $validated['official_receipt_number'] ?? $paymentRecord->official_receipt_number,
-                    'paid_at' => in_array($nextStatus, ['for_printing', 'ready_for_pickup', 'released'], true)
-                        ? ($paymentRecord->paid_at ?? now())
-                        : null,
-                    'received_by_user_id' => in_array($nextStatus, ['for_printing', 'ready_for_pickup', 'released'], true)
-                        ? $user->id
-                        : $paymentRecord->received_by_user_id,
-                    'notes' => $validated['remarks'] ?? $paymentRecord->notes,
-                ]);
-
-                $paymentRecord->save();
-            }
-
-            if (in_array($nextStatus, ['for_printing', 'ready_for_pickup', 'released'], true)) {
-                $generatedDocument = GeneratedDocument::query()->firstOrNew([
-                    'request_id' => $serviceRequest->id,
-                ]);
-
-                $generatedDocument->fill([
-                    'document_number' => $generatedDocument->document_number ?: DocumentNumber::generate($serviceRequest),
-                    'generated_at' => $generatedDocument->generated_at ?? now(),
-                    'prepared_by_user_id' => $generatedDocument->prepared_by_user_id ?? $user->id,
-                    'printed_at' => in_array($nextStatus, ['ready_for_pickup', 'released'], true)
-                        ? ($generatedDocument->printed_at ?? now())
-                        : $generatedDocument->printed_at,
-                    'printed_by_user_id' => in_array($nextStatus, ['ready_for_pickup', 'released'], true)
-                        ? ($generatedDocument->printed_by_user_id ?? $user->id)
-                        : $generatedDocument->printed_by_user_id,
-                ]);
-
-                $generatedDocument->save();
             }
 
             if ($nextStatus === 'released') {
@@ -261,10 +209,25 @@ class DocumentRequestController extends Controller
                 'current_status' => $nextStatus,
                 'latest_status_at' => now(),
                 'assigned_to_user_id' => $serviceRequest->assigned_to_user_id ?? $user->id,
-                'reviewed_by_user_id' => in_array($nextStatus, ['under_review', 'approved', 'for_payment', 'for_printing', 'ready_for_pickup', 'released'], true)
+                'reviewed_by_user_id' => in_array($nextStatus, [
+                    'under_review',
+                    'needs_additional_documents',
+                    'for_assessment',
+                    'approved',
+                    'referred',
+                    'ready_for_claim',
+                    'released',
+                    'closed',
+                ], true)
                     ? ($serviceRequest->reviewed_by_user_id ?? $user->id)
                     : $serviceRequest->reviewed_by_user_id,
-                'approved_by_user_id' => in_array($nextStatus, ['approved', 'for_payment', 'for_printing', 'ready_for_pickup', 'released'], true)
+                'approved_by_user_id' => in_array($nextStatus, [
+                    'approved',
+                    'referred',
+                    'ready_for_claim',
+                    'released',
+                    'closed',
+                ], true)
                     ? ($serviceRequest->approved_by_user_id ?? $user->id)
                     : $serviceRequest->approved_by_user_id,
                 'rejected_by_user_id' => $nextStatus === 'rejected' ? $user->id : null,
@@ -272,7 +235,7 @@ class DocumentRequestController extends Controller
                 'rejection_reason' => $nextStatus === 'rejected' ? $validated['rejection_reason'] : null,
                 'cancellation_reason' => $nextStatus === 'cancelled' ? $validated['cancellation_reason'] : null,
                 'internal_notes' => $validated['remarks'] ?? $serviceRequest->internal_notes,
-                'completed_at' => $nextStatus === 'released' ? now() : $serviceRequest->completed_at,
+                'completed_at' => in_array($nextStatus, ['released', 'closed'], true) ? now() : $serviceRequest->completed_at,
                 'cancelled_at' => $nextStatus === 'cancelled' ? now() : null,
             ]);
 
@@ -280,7 +243,7 @@ class DocumentRequestController extends Controller
                 'request_id' => $serviceRequest->id,
                 'from_status' => $fromStatus,
                 'to_status' => $nextStatus,
-                'remarks' => $validated['remarks'] ?: 'Document request status updated.',
+                'remarks' => $validated['remarks'] ?: 'Assistance request status updated.',
                 'acted_by_user_id' => $user->id,
                 'acted_at' => now(),
             ]);
@@ -291,9 +254,9 @@ class DocumentRequestController extends Controller
 
             AuditTrail::record(
                 user: $user,
-                action: 'document_request_updated',
+                action: 'assistance_request_updated',
                 subject: $serviceRequest,
-                description: 'Document request workflow updated.',
+                description: 'Assistance request workflow updated.',
                 oldValues: ['status' => $oldStatus],
                 newValues: ['status' => $nextStatus],
                 request: $request,
@@ -301,18 +264,23 @@ class DocumentRequestController extends Controller
         });
 
         return redirect()
-            ->route('barangay.documents.show', $serviceRequest)
-            ->with('success', 'Document request updated successfully.');
+            ->route('barangay.assistance.show', $serviceRequest)
+            ->with('success', 'Assistance request updated successfully.');
     }
 
-    private function ensureSameBarangayDocument(?int $officialBarangayId, ServiceRequest $serviceRequest): void
+    private function ensureSameBarangayAssistance(?int $officialBarangayId, ServiceRequest $serviceRequest): void
     {
         abort_unless($officialBarangayId, 403, 'This official account has no barangay assignment.');
 
         abort_unless(
             $serviceRequest->barangay_id === $officialBarangayId &&
-            $serviceRequest->request_category === 'document',
+            $serviceRequest->request_category === 'assistance',
             404
         );
+    }
+
+    private function likeOperator(): string
+    {
+        return DB::connection()->getDriverName() === 'pgsql' ? 'ilike' : 'like';
     }
 }

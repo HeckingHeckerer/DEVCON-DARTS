@@ -28,7 +28,7 @@
                         {{ config('app.name') }}
                     </a>
                     <p class="text-xs text-slate-500">
-                        Valencia Barangay Service Portal
+                        Digital Service Access and Request Tracking System
                     </p>
                 </div>
 

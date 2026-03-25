@@ -24,19 +24,20 @@ class ResidentVerificationController extends Controller
 
         $status = $request->string('status')->toString();
         $search = trim($request->string('search')->toString());
+        $likeOperator = $this->likeOperator();
 
         $verifications = ResidentVerification::query()
             ->with(['residentProfile.user', 'residentProfile.barangay'])
-            ->whereHas('residentProfile', function ($query) use ($barangayId, $search) {
+            ->whereHas('residentProfile', function ($query) use ($barangayId, $search, $likeOperator) {
                 $query->where('barangay_id', $barangayId);
 
                 if ($search !== '') {
-                    $query->where(function ($subQuery) use ($search) {
+                    $query->where(function ($subQuery) use ($search, $likeOperator) {
                         $subQuery
-                            ->where('first_name', 'ilike', "%{$search}%")
-                            ->orWhere('middle_name', 'ilike', "%{$search}%")
-                            ->orWhere('last_name', 'ilike', "%{$search}%")
-                            ->orWhere('suffix', 'ilike', "%{$search}%");
+                            ->where('first_name', $likeOperator, "%{$search}%")
+                            ->orWhere('middle_name', $likeOperator, "%{$search}%")
+                            ->orWhere('last_name', $likeOperator, "%{$search}%")
+                            ->orWhere('suffix', $likeOperator, "%{$search}%");
                     });
                 }
             })
@@ -172,5 +173,10 @@ class ResidentVerificationController extends Controller
             $residentVerification->residentProfile?->barangay_id === $officialBarangayId,
             404
         );
+    }
+
+    private function likeOperator(): string
+    {
+        return DB::connection()->getDriverName() === 'pgsql' ? 'ilike' : 'like';
     }
 }

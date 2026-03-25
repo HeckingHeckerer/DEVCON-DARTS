@@ -1,3 +1,5 @@
+@php use Illuminate\Support\Facades\Storage; @endphp
+
 @extends('layouts.barangay')
 
 @section('content')
@@ -144,6 +146,12 @@
                                             <p class="mt-1 text-xs text-slate-500">
                                                 {{ $file->original_name ?? basename($file->file_path) }}
                                             </p>
+
+                                            <a href="{{ Storage::disk('public')->url($file->file_path) }}"
+                                               target="_blank"
+                                               class="mt-2 inline-flex text-sm font-medium text-slate-700 hover:text-slate-900">
+                                                Open File
+                                            </a>
                                         </div>
 
                                         <x-status-badge :status="$file->review_status" />
@@ -196,7 +204,7 @@
                                     <textarea id="correction_notes"
                                               name="correction_notes"
                                               rows="4"
-                                              class="mt-2 w-full rounded-xl border-slate-300 shadow-sm focus:border-slate-900 focus:ring-slate-900">{{ old('correction_notes') }}</textarea>
+                                              class="mt-2 w-full rounded-xl border-slate-300 shadow-sm focus:border-slate-900 focus:ring-slate-900">{{ old('correction_notes', $residentVerification->correction_notes) }}</textarea>
                                 </div>
 
                                 <div>
@@ -204,7 +212,7 @@
                                     <textarea id="rejection_reason"
                                               name="rejection_reason"
                                               rows="4"
-                                              class="mt-2 w-full rounded-xl border-slate-300 shadow-sm focus:border-slate-900 focus:ring-slate-900">{{ old('rejection_reason') }}</textarea>
+                                              class="mt-2 w-full rounded-xl border-slate-300 shadow-sm focus:border-slate-900 focus:ring-slate-900">{{ old('rejection_reason', $residentVerification->rejection_reason) }}</textarea>
                                 </div>
                             </div>
                         </div>

@@ -6,7 +6,7 @@
             <div class="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
                 <div>
                     <p class="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">
-                        Valencia Barangay Service Portal
+                        Digital Service Access and Request Tracking System
                     </p>
 
                     <h1 class="mt-4 text-4xl font-bold tracking-tight text-slate-950 lg:text-5xl">
@@ -38,7 +38,13 @@
                 </div>
 
                 <div class="rounded-3xl border border-slate-200 bg-slate-50 p-6">
-                    <h2 class="text-xl font-semibold text-slate-900">Shared secure login</h2>
+                    <div class="darts-brand-lockup">
+                        <img src="{{ asset('branding/arrow.png') }}" alt="DARTS team icon" class="darts-brand-symbol">
+                        <img src="{{ asset('branding/dart.png') }}" alt="DARTS wordmark" class="darts-brand-wordmark">
+                        <p class="darts-brand-tagline">Digital Service Access and Request Tracking</p>
+                    </div>
+
+                    <h2 class="mt-6 text-xl font-semibold text-slate-900">Shared secure login</h2>
                     <p class="mt-3 text-sm leading-7 text-slate-600">
                         All portal roles use one secure login page. The system redirects each account to the correct workspace after authentication.
                     </p>

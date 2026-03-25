@@ -3,8 +3,7 @@
 namespace App\Http\Controllers\Barangay;
 
 use App\Http\Controllers\Controller;
-use App\Models\DocumentRequestDetail;
-use App\Models\PaymentRecord;
+use App\Models\ReleaseRecord;
 use App\Models\RequestStatusLog;
 use App\Models\ServiceRequest;
 use App\Support\AuditTrail;
@@ -12,9 +11,10 @@ use App\Support\ResidentNotifier;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
-class PaymentOperationController extends Controller
+class ReleaseOperationController extends Controller
 {
     public function index(Request $request): View
     {
@@ -24,28 +24,35 @@ class PaymentOperationController extends Controller
         abort_unless($barangayId, 403, 'This official account has no barangay assignment.');
 
         $status = $request->string('status')->toString();
+        $type = $request->string('type')->toString();
         $search = trim($request->string('search')->toString());
+        $likeOperator = $this->likeOperator();
 
-        $payments = ServiceRequest::query()
-            ->with(['residentProfile.user', 'serviceType', 'documentDetail', 'paymentRecords'])
+        $releases = ServiceRequest::query()
+            ->with([
+                'residentProfile.user',
+                'serviceType',
+                'releaseRecord',
+                'generatedDocument',
+            ])
             ->where('barangay_id', $barangayId)
-            ->where('request_category', 'document')
-            ->whereHas('serviceType', fn ($query) => $query->where('requires_payment', true))
+            ->whereIn('request_category', ['document', 'assistance'])
             ->when(
                 $status !== '',
                 fn ($query) => $query->where('current_status', $status),
-                fn ($query) => $query->whereIn('current_status', ['approved', 'for_payment', 'for_printing'])
+                fn ($query) => $query->whereIn('current_status', ['ready_for_pickup', 'ready_for_claim', 'released'])
             )
-            ->when($search !== '', function ($query) use ($search) {
-                $query->where(function ($subQuery) use ($search) {
+            ->when($type !== '', fn ($query) => $query->where('request_category', $type))
+            ->when($search !== '', function ($query) use ($search, $likeOperator) {
+                $query->where(function ($subQuery) use ($search, $likeOperator) {
                     $subQuery
-                        ->where('reference_number', 'ilike', "%{$search}%")
-                        ->orWhereHas('residentProfile', function ($profileQuery) use ($search) {
+                        ->where('reference_number', $likeOperator, "%{$search}%")
+                        ->orWhereHas('residentProfile', function ($profileQuery) use ($search, $likeOperator) {
                             $profileQuery
-                                ->where('first_name', 'ilike', "%{$search}%")
-                                ->orWhere('middle_name', 'ilike', "%{$search}%")
-                                ->orWhere('last_name', 'ilike', "%{$search}%")
-                                ->orWhere('suffix', 'ilike', "%{$search}%");
+                                ->where('first_name', $likeOperator, "%{$search}%")
+                                ->orWhere('middle_name', $likeOperator, "%{$search}%")
+                                ->orWhere('last_name', $likeOperator, "%{$search}%")
+                                ->orWhere('suffix', $likeOperator, "%{$search}%");
                         });
                 });
             })
@@ -53,9 +60,10 @@ class PaymentOperationController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        return view('barangay.payments.index', [
-            'payments' => $payments,
+        return view('barangay.releases.index', [
+            'releases' => $releases,
             'selectedStatus' => $status,
+            'selectedType' => $type,
             'search' => $search,
         ]);
     }
@@ -68,18 +76,16 @@ class PaymentOperationController extends Controller
             'residentProfile.user',
             'residentProfile.barangay',
             'serviceType',
-            'documentDetail',
-            'paymentRecords.receivedBy',
+            'generatedDocument',
+            'releaseRecord.releasedBy',
             'statusLogs.actedBy',
         ]);
 
-        $this->ensureSameBarangayPayableDocument($user->officialProfile?->barangay_id, $serviceRequest);
+        $this->ensureSameBarangayReleaseQueue($user->officialProfile?->barangay_id, $serviceRequest);
 
-        return view('barangay.payments.show', [
+        return view('barangay.releases.show', [
             'serviceRequest' => $serviceRequest,
             'residentProfile' => $serviceRequest->residentProfile,
-            'documentDetail' => $serviceRequest->documentDetail,
-            'latestPayment' => $serviceRequest->paymentRecords->sortByDesc('paid_at')->first(),
         ]);
     }
 
@@ -89,17 +95,23 @@ class PaymentOperationController extends Controller
 
         $serviceRequest->load([
             'residentProfile.user',
-            'serviceType',
-            'documentDetail',
-            'paymentRecords',
+            'releaseRecord',
+            'generatedDocument',
         ]);
 
-        $this->ensureSameBarangayPayableDocument($user->officialProfile?->barangay_id, $serviceRequest);
+        $this->ensureSameBarangayReleaseQueue($user->officialProfile?->barangay_id, $serviceRequest);
+
+        if (! in_array($serviceRequest->current_status, ['ready_for_pickup', 'ready_for_claim', 'released'], true)) {
+            throw ValidationException::withMessages([
+                'release' => 'Only ready-for-release requests can be recorded here.',
+            ]);
+        }
 
         $validated = $request->validate([
-            'payment_amount' => ['required', 'numeric', 'min:0'],
-            'official_receipt_number' => ['required', 'string', 'max:255'],
-            'notes' => ['nullable', 'string', 'max:5000'],
+            'released_to_name' => ['required', 'string', 'max:255'],
+            'released_to_relationship' => ['nullable', 'string', 'max:255'],
+            'claimant_identification_notes' => ['nullable', 'string', 'max:2000'],
+            'remarks' => ['nullable', 'string', 'max:5000'],
         ]);
 
         $oldStatus = $serviceRequest->current_status;
@@ -107,83 +119,81 @@ class PaymentOperationController extends Controller
         DB::transaction(function () use ($validated, $user, $serviceRequest, $request, $oldStatus): void {
             $fromStatus = $serviceRequest->current_status;
 
-            $paymentRecord = PaymentRecord::query()->firstOrNew([
+            $releaseRecord = ReleaseRecord::query()->firstOrNew([
                 'request_id' => $serviceRequest->id,
             ]);
 
-            $paymentRecord->fill([
-                'amount' => $validated['payment_amount'],
-                'payment_status' => 'paid',
-                'official_receipt_number' => $validated['official_receipt_number'],
-                'paid_at' => $paymentRecord->paid_at ?? now(),
-                'received_by_user_id' => $user->id,
-                'notes' => $validated['notes'] ?? null,
+            $releaseRecord->fill([
+                'released_to_name' => $validated['released_to_name'],
+                'released_to_relationship' => $validated['released_to_relationship'] ?? null,
+                'released_at' => $releaseRecord->released_at ?? now(),
+                'released_by_user_id' => $user->id,
+                'claimant_identification_notes' => $validated['claimant_identification_notes'] ?? null,
+                'remarks' => $validated['remarks'] ?? null,
             ]);
 
-            $paymentRecord->save();
+            $releaseRecord->save();
 
-            $documentDetail = $serviceRequest->documentDetail ?: DocumentRequestDetail::create([
-                'request_id' => $serviceRequest->id,
-            ]);
-
-            $documentDetail->update([
-                'payment_amount' => $validated['payment_amount'],
-                'official_receipt_number' => $validated['official_receipt_number'],
-            ]);
-
-            if ($serviceRequest->current_status !== 'for_printing') {
+            if ($serviceRequest->current_status !== 'released') {
                 $serviceRequest->update([
-                    'current_status' => 'for_printing',
+                    'current_status' => 'released',
                     'latest_status_at' => now(),
-                    'internal_notes' => $validated['notes'] ?? $serviceRequest->internal_notes,
+                    'completed_at' => $serviceRequest->completed_at ?? now(),
+                    'internal_notes' => $validated['remarks'] ?? $serviceRequest->internal_notes,
                 ]);
 
                 RequestStatusLog::create([
                     'request_id' => $serviceRequest->id,
                     'from_status' => $fromStatus,
-                    'to_status' => 'for_printing',
-                    'remarks' => $validated['notes'] ?: 'Payment confirmed and request moved to printing.',
+                    'to_status' => 'released',
+                    'remarks' => $validated['remarks'] ?: 'Request released to claimant.',
                     'acted_by_user_id' => $user->id,
                     'acted_at' => now(),
                 ]);
 
-                ResidentNotifier::requestStatusChanged($serviceRequest, $validated['notes'] ?? null);
-            } elseif (! empty($validated['notes'])) {
+                ResidentNotifier::requestStatusChanged($serviceRequest, $validated['remarks'] ?? null);
+            } elseif (! empty($validated['remarks'])) {
                 $serviceRequest->update([
-                    'internal_notes' => $validated['notes'],
+                    'internal_notes' => $validated['remarks'],
                     'latest_status_at' => now(),
                 ]);
             }
 
             AuditTrail::record(
                 user: $user,
-                action: 'payment_recorded',
+                action: 'request_released',
                 subject: $serviceRequest,
-                description: 'Payment recorded for document request.',
-                oldValues: ['status' => $oldStatus],
+                description: 'Release record updated.',
+                oldValues: [
+                    'status' => $oldStatus,
+                    'released_to_name' => $serviceRequest->releaseRecord?->getOriginal('released_to_name'),
+                ],
                 newValues: [
                     'status' => $serviceRequest->current_status,
-                    'payment_amount' => $validated['payment_amount'],
-                    'official_receipt_number' => $validated['official_receipt_number'],
+                    'released_to_name' => $validated['released_to_name'],
                 ],
                 request: $request,
             );
         });
 
         return redirect()
-            ->route('barangay.payments.show', $serviceRequest)
-            ->with('success', 'Payment recorded successfully.');
+            ->route('barangay.releases.show', $serviceRequest)
+            ->with('success', 'Release recorded successfully.');
     }
 
-    private function ensureSameBarangayPayableDocument(?int $officialBarangayId, ServiceRequest $serviceRequest): void
+    private function ensureSameBarangayReleaseQueue(?int $officialBarangayId, ServiceRequest $serviceRequest): void
     {
         abort_unless($officialBarangayId, 403, 'This official account has no barangay assignment.');
 
         abort_unless(
             $serviceRequest->barangay_id === $officialBarangayId &&
-            $serviceRequest->request_category === 'document' &&
-            $serviceRequest->serviceType?->requires_payment,
+            in_array($serviceRequest->request_category, ['document', 'assistance'], true),
             404
         );
+    }
+
+    private function likeOperator(): string
+    {
+        return DB::connection()->getDriverName() === 'pgsql' ? 'ilike' : 'like';
     }
 }
