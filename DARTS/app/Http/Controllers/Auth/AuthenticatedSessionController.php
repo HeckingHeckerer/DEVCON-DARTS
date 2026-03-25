@@ -27,6 +27,19 @@ class AuthenticatedSessionController extends Controller
             'officialProfile',
         ]);
 
+        if ($user->account_status !== 'active') {
+            Auth::guard('web')->logout();
+
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return back()
+                ->withErrors([
+                    'email' => 'Your account is not active. Please contact the administrator.',
+                ])
+                ->onlyInput('email');
+        }
+
         $user->update([
             'last_login_at' => now(),
             'last_login_ip' => $request->ip(),

@@ -29,6 +29,11 @@
 
                 <div class="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                     @forelse (($services[$groupKey] ?? collect()) as $service)
+                        @php
+                            $schema = \App\Support\ServiceRequestSchema::for($service);
+                            $requiredAttachmentCount = collect($schema['attachments'] ?? [])->where('required', true)->count();
+                        @endphp
+
                         <article class="rounded-2xl border border-slate-200 bg-slate-50 p-5">
                             <div class="flex items-start justify-between gap-4">
                                 <div>
@@ -36,7 +41,7 @@
                                         {{ $service->name }}
                                     </h3>
                                     <p class="mt-2 text-sm text-slate-500">
-                                        Code: {{ $service->code }}
+                                        {{ $schema['description'] ?: ('Code: ' . $service->code) }}
                                     </p>
                                 </div>
 
@@ -55,15 +60,27 @@
                                         {{ $service->requires_payment ? 'Yes' : 'No' }}
                                     </span>
                                 </div>
+
+                                <div class="flex items-center justify-between">
+                                    <span>Service Fields</span>
+                                    <span class="font-medium text-slate-800">{{ count($schema['fields'] ?? []) }}</span>
+                                </div>
+
+                                <div class="flex items-center justify-between">
+                                    <span>Required Attachments</span>
+                                    <span class="font-medium text-slate-800">{{ $requiredAttachmentCount }}</span>
+                                </div>
                             </div>
 
                             @auth
-                                <div class="mt-5">
-                                    <a href="{{ route('resident.requests.create.service', $service) }}"
-                                       class="inline-flex rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800">
-                                        Start Request
-                                    </a>
-                                </div>
+                                @if (auth()->user()->isResident())
+                                    <div class="mt-5">
+                                        <a href="{{ route('resident.requests.create.service', $service) }}"
+                                           class="inline-flex rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800">
+                                            Start Request
+                                        </a>
+                                    </div>
+                                @endif
                             @endauth
                         </article>
                     @empty

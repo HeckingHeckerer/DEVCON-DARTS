@@ -9,7 +9,7 @@ class ServiceTypeSeeder extends Seeder
 {
     public function run(): void
     {
-        $serviceTypes = [
+        $services = [
             [
                 'code' => 'barangay_clearance',
                 'name' => 'Barangay Clearance',
@@ -54,10 +54,10 @@ class ServiceTypeSeeder extends Seeder
             ],
         ];
 
-        foreach ($serviceTypes as $serviceType) {
-            ServiceType::updateOrCreate(
-                ['code' => $serviceType['code']],
-                $serviceType
+        foreach ($services as $service) {
+            ServiceType::query()->updateOrCreate(
+                ['code' => $service['code']],
+                $service
             );
         }
     }

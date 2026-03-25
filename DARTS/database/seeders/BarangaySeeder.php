@@ -10,8 +10,21 @@ class BarangaySeeder extends Seeder
 {
     public function run(): void
     {
-        foreach (config('portal.pilot_barangays', []) as $barangayName) {
-            Barangay::updateOrCreate(
+        $barangays = [
+            'Poblacion',
+            'Lumbo',
+            'Batangan',
+            'Bagontaas',
+            'Banlag',
+            'Lurogan',
+            'Tonganton',
+            'Guinoyurar',
+            'Lilingayon',
+            'Sinayawan',
+        ];
+
+        foreach ($barangays as $barangayName) {
+            Barangay::query()->updateOrCreate(
                 ['name' => $barangayName],
                 [
                     'slug' => Str::slug($barangayName),

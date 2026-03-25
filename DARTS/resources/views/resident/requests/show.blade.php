@@ -2,6 +2,12 @@
 
 @section('content')
     <div class="space-y-8">
+        @php
+            $requiredAttachmentDefinitions = $schema['attachments'] ?? [];
+            $attachmentsByType = $serviceRequest->attachments->groupBy('attachment_type');
+            $otherAttachments = $attachmentsByType->get('supporting_document', collect());
+        @endphp
+
         <section class="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
             <div class="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
                 <div>
@@ -54,65 +60,79 @@
                             </span>
                         </div>
 
+                        @foreach ($summaryRows as $row)
+                            <div class="flex items-start justify-between gap-4">
+                                <span class="text-slate-500">{{ $row['label'] }}</span>
+                                <span class="max-w-[70%] text-right font-medium text-slate-900">{{ $row['value'] }}</span>
+                            </div>
+                        @endforeach
+
                         @if ($serviceRequest->request_category === 'document')
-                            <div class="flex items-start justify-between gap-4">
-                                <span class="text-slate-500">Purpose</span>
-                                <span class="max-w-[70%] text-right font-medium text-slate-900">{{ $serviceRequest->documentDetail?->purpose ?? '—' }}</span>
-                            </div>
-
                             <div class="flex items-center justify-between gap-4">
-                                <span class="text-slate-500">Payment Amount</span>
-                                <span class="font-medium text-slate-900">
-                                    {{ $serviceRequest->documentDetail?->payment_amount !== null ? number_format($serviceRequest->documentDetail->payment_amount, 2) : '—' }}
-                                </span>
-                            </div>
-                        @endif
-
-                        @if ($serviceRequest->request_category === 'assistance')
-                            <div class="flex items-start justify-between gap-4">
-                                <span class="text-slate-500">Case Summary</span>
-                                <span class="max-w-[70%] text-right font-medium text-slate-900">
-                                    {{ $serviceRequest->assistanceDetail?->case_summary ?? '—' }}
-                                </span>
-                            </div>
-
-                            <div class="flex items-center justify-between gap-4">
-                                <span class="text-slate-500">Requested Amount</span>
-                                <span class="font-medium text-slate-900">
-                                    {{ $serviceRequest->assistanceDetail?->requested_amount !== null ? number_format($serviceRequest->assistanceDetail->requested_amount, 2) : '—' }}
-                                </span>
-                            </div>
-
-                            <div class="flex items-center justify-between gap-4">
-                                <span class="text-slate-500">Referral Destination</span>
-                                <span class="font-medium text-slate-900">
-                                    {{ $serviceRequest->assistanceDetail?->referral_destination ?? '—' }}
-                                </span>
+                                <span class="text-slate-500">Document Number</span>
+                                <span class="font-medium text-slate-900">{{ $serviceRequest->generatedDocument?->document_number ?: '—' }}</span>
                             </div>
                         @endif
                     </div>
                 </section>
 
                 <section class="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-                    <h2 class="text-2xl font-bold tracking-tight text-slate-900">Supporting Attachments</h2>
+                    <h2 class="text-2xl font-bold tracking-tight text-slate-900">Required Attachments</h2>
 
                     <div class="mt-6 space-y-3">
-                        @forelse ($serviceRequest->attachments as $attachment)
+                        @foreach ($requiredAttachmentDefinitions as $attachmentType => $attachmentDefinition)
+                            @php
+                                $uploadedAttachment = $attachmentsByType->get($attachmentType, collect())->first();
+                            @endphp
+
                             <div class="flex items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
                                 <div>
-                                    <p class="text-sm font-semibold text-slate-900">{{ $attachment->attachment_type }}</p>
-                                    <p class="text-xs text-slate-500">{{ $attachment->original_name ?? basename($attachment->file_path) }}</p>
+                                    <p class="text-sm font-semibold text-slate-900">{{ \App\Support\ServiceRequestSchema::attachmentLabel($serviceRequest->serviceType, $attachmentType) }}</p>
+                                    <p class="text-xs text-slate-500">
+                                        {{ $uploadedAttachment?->original_name ?? 'No uploaded file found' }}
+                                    </p>
                                 </div>
 
-                                <x-status-badge :status="$attachment->review_status" />
+                                <x-status-badge :status="$uploadedAttachment?->review_status ?? 'rejected'" />
                             </div>
-                        @empty
-                            <div class="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-5 text-sm text-slate-500">
-                                No supporting attachments uploaded.
-                            </div>
-                        @endforelse
+                        @endforeach
+                    </div>
+
+                    <div class="mt-8 border-t border-slate-200 pt-8">
+                        <h3 class="text-lg font-semibold text-slate-900">Other Supporting Files</h3>
+
+                        <div class="mt-4 space-y-3">
+                            @forelse ($otherAttachments as $attachment)
+                                <div class="flex items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                                    <div>
+                                        <p class="text-sm font-semibold text-slate-900">{{ \App\Support\ServiceRequestSchema::attachmentLabel($serviceRequest->serviceType, $attachment->attachment_type) }}</p>
+                                        <p class="text-xs text-slate-500">{{ $attachment->original_name ?? basename($attachment->file_path) }}</p>
+                                    </div>
+
+                                    <x-status-badge :status="$attachment->review_status" />
+                                </div>
+                            @empty
+                                <div class="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-5 text-sm text-slate-500">
+                                    No extra supporting files uploaded.
+                                </div>
+                            @endforelse
+                        </div>
                     </div>
                 </section>
+
+                @if (! empty($schema['review_checklist']))
+                    <section class="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+                        <h2 class="text-2xl font-bold tracking-tight text-slate-900">Review Checklist</h2>
+
+                        <div class="mt-6 space-y-3">
+                            @foreach ($schema['review_checklist'] as $checkItem)
+                                <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+                                    {{ $checkItem }}
+                                </div>
+                            @endforeach
+                        </div>
+                    </section>
+                @endif
 
                 <section class="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
                     <h2 class="text-2xl font-bold tracking-tight text-slate-900">Operational Records</h2>

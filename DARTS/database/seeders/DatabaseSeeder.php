@@ -11,7 +11,8 @@ class DatabaseSeeder extends Seeder
         $this->call([
             BarangaySeeder::class,
             ServiceTypeSeeder::class,
-            CitySuperAdminSeeder::class,
+            SuperAdminSeeder::class,
+            OfficialAccountSeeder::class,
         ]);
     }
 }

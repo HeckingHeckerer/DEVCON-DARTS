@@ -3,6 +3,7 @@
 use App\Http\Controllers\Barangay\AssistanceRequestController;
 use App\Http\Controllers\Barangay\DashboardController;
 use App\Http\Controllers\Barangay\DocumentRequestController;
+use App\Http\Controllers\Barangay\GeneratedDocumentController;
 use App\Http\Controllers\Barangay\PaymentOperationController;
 use App\Http\Controllers\Barangay\ReferralOperationController;
 use App\Http\Controllers\Barangay\ReleaseOperationController;
@@ -30,6 +31,7 @@ Route::middleware(['auth', 'barangay_official'])
             Route::get('/documents', [DocumentRequestController::class, 'index'])->name('documents.index');
             Route::get('/documents/{serviceRequest}', [DocumentRequestController::class, 'show'])->name('documents.show');
             Route::put('/documents/{serviceRequest}', [DocumentRequestController::class, 'update'])->name('documents.update');
+            Route::get('/documents/{serviceRequest}/print', [GeneratedDocumentController::class, 'show'])->name('documents.print');
 
             Route::get('/assistance', [AssistanceRequestController::class, 'index'])->name('assistance.index');
             Route::get('/assistance/{serviceRequest}', [AssistanceRequestController::class, 'show'])->name('assistance.show');

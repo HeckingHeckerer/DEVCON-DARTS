@@ -10,10 +10,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
+use Illuminate\View\View;
 
 class RegisteredUserController extends Controller
 {
-    public function create()
+    public function create(): View
     {
         return view('auth.register');
     }
@@ -33,6 +34,7 @@ class RegisteredUserController extends Controller
             'role' => 'resident',
             'account_status' => 'active',
             'is_resident_verified' => false,
+            'email_verified_at' => null,
         ]);
 
         event(new Registered($user));

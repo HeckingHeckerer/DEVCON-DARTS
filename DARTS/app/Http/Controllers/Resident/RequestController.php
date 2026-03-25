@@ -10,12 +10,12 @@ use App\Models\RequestStatusLog;
 use App\Models\ServiceRequest;
 use App\Models\ServiceType;
 use App\Support\RequestReferenceNumber;
+use App\Support\ServiceRequestSchema;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class RequestController extends Controller
@@ -44,6 +44,7 @@ class RequestController extends Controller
         return view('resident.requests.create', [
             'services' => $services,
             'serviceType' => null,
+            'schema' => null,
         ]);
     }
 
@@ -61,11 +62,16 @@ class RequestController extends Controller
         return view('resident.requests.create', [
             'services' => $services,
             'serviceType' => $serviceType,
+            'schema' => ServiceRequestSchema::for($serviceType),
         ]);
     }
 
     public function store(Request $request): RedirectResponse
     {
+        $request->validate([
+            'service_type_code' => ['required', 'exists:service_types,code'],
+        ]);
+
         $user = $request->user()->load([
             'residentProfile.barangay',
             'residentProfile.verification',
@@ -74,30 +80,13 @@ class RequestController extends Controller
         abort_unless($user->residentProfile && $user->residentProfile->verification, 403);
         abort_unless($user->residentProfile->verification->status === 'verified', 403);
 
-        $validated = $request->validate([
-            'service_type_code' => ['required', 'exists:service_types,code'],
-
-            'purpose' => ['nullable', 'string', 'max:2000'],
-            'cedula_number' => ['nullable', 'string', 'max:255'],
-            'cedula_date' => ['nullable', 'date'],
-            'cedula_place' => ['nullable', 'string', 'max:255'],
-            'years_of_residency' => ['nullable', 'integer', 'min:0', 'max:150'],
-            'months_of_residency' => ['nullable', 'integer', 'min:0', 'max:11'],
-            'oath_required' => ['nullable', 'boolean'],
-
-            'case_summary' => ['nullable', 'string', 'max:5000'],
-            'requested_amount' => ['nullable', 'numeric', 'min:0'],
-
-            'supporting_files' => ['nullable', 'array'],
-            'supporting_files.*' => ['file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:5120'],
-        ]);
-
         $serviceType = ServiceType::query()
-            ->where('code', $validated['service_type_code'])
+            ->where('code', $request->string('service_type_code')->toString())
             ->where('is_active', true)
             ->firstOrFail();
 
-        $this->validateServiceSpecificRequestData($request, $serviceType, $user->residentProfile->id);
+        $request->validate(ServiceRequestSchema::validationRules($serviceType));
+        ServiceRequestSchema::assertBusinessRules($serviceType, $user->residentProfile->id);
 
         $residentProfile = $user->residentProfile;
 
@@ -114,32 +103,41 @@ class RequestController extends Controller
             ]);
 
             if ($serviceType->category === 'document') {
-                DocumentRequestDetail::create([
-                    'request_id' => $serviceRequest->id,
-                    'purpose' => $request->string('purpose')->toString(),
-                    'cedula_number' => $request->input('cedula_number'),
-                    'cedula_date' => $request->input('cedula_date'),
-                    'cedula_place' => $request->input('cedula_place'),
-                    'years_of_residency' => $request->filled('years_of_residency') ? (int) $request->input('years_of_residency') : null,
-                    'months_of_residency' => $request->filled('months_of_residency') ? (int) $request->input('months_of_residency') : null,
-                    'jobseeker_availment_count' => $serviceType->code === 'first_time_jobseeker_certification' ? 1 : 0,
-                    'oath_required' => $serviceType->code === 'first_time_jobseeker_certification'
-                        ? $request->boolean('oath_required')
-                        : false,
-                ]);
+                DocumentRequestDetail::create(array_merge(
+                    ['request_id' => $serviceRequest->id],
+                    ServiceRequestSchema::documentPayload($request, $serviceType)
+                ));
             }
 
             if ($serviceType->category === 'assistance') {
-                AssistanceRequestDetail::create([
+                AssistanceRequestDetail::create(array_merge(
+                    ['request_id' => $serviceRequest->id],
+                    ServiceRequestSchema::assistancePayload($request, $serviceType)
+                ));
+            }
+
+            foreach (ServiceRequestSchema::attachments($serviceType) as $attachmentKey => $attachmentSchema) {
+                if (! $request->hasFile("attachments.{$attachmentKey}")) {
+                    continue;
+                }
+
+                $uploadedFile = $request->file("attachments.{$attachmentKey}");
+                $path = $uploadedFile->store("requests/{$serviceRequest->id}/attachments", 'public');
+
+                RequestAttachment::create([
                     'request_id' => $serviceRequest->id,
-                    'case_summary' => $request->string('case_summary')->toString(),
-                    'requested_amount' => $request->filled('requested_amount')
-                        ? $request->input('requested_amount')
-                        : null,
+                    'attachment_type' => $attachmentKey,
+                    'file_path' => $path,
+                    'original_name' => $uploadedFile->getClientOriginalName(),
+                    'mime_type' => $uploadedFile->getClientMimeType(),
+                    'file_size' => $uploadedFile->getSize(),
+                    'uploaded_by_user_id' => $user->id,
+                    'is_required' => (bool) ($attachmentSchema['required'] ?? false),
+                    'review_status' => 'pending',
                 ]);
             }
 
-            foreach ($request->file('supporting_files', []) as $uploadedFile) {
+            foreach ($request->file('other_supporting_files', []) as $uploadedFile) {
                 $path = $uploadedFile->store("requests/{$serviceRequest->id}/attachments", 'public');
 
                 RequestAttachment::create([
@@ -197,6 +195,8 @@ class RequestController extends Controller
 
         return view('resident.requests.show', [
             'serviceRequest' => $serviceRequest,
+            'schema' => ServiceRequestSchema::for($serviceRequest->serviceType),
+            'summaryRows' => ServiceRequestSchema::summaryRows($serviceRequest),
         ]);
     }
 
@@ -211,49 +211,5 @@ class RequestController extends Controller
             ->where('resident_profile_id', $residentProfileId)
             ->latest('created_at')
             ->paginate(10);
-    }
-
-    private function validateServiceSpecificRequestData(Request $request, ServiceType $serviceType, int $residentProfileId): void
-    {
-        if ($serviceType->category === 'document') {
-            $request->validate([
-                'purpose' => ['required', 'string', 'max:2000'],
-            ]);
-        }
-
-        if ($serviceType->category === 'assistance') {
-            $request->validate([
-                'case_summary' => ['required', 'string', 'max:5000'],
-            ]);
-        }
-
-        if ($serviceType->code === 'barangay_clearance') {
-            $request->validate([
-                'cedula_number' => ['required', 'string', 'max:255'],
-                'cedula_date' => ['required', 'date'],
-                'cedula_place' => ['required', 'string', 'max:255'],
-            ]);
-        }
-
-        if ($serviceType->code === 'certificate_of_residency') {
-            $request->validate([
-                'years_of_residency' => ['required', 'integer', 'min:0', 'max:150'],
-                'months_of_residency' => ['required', 'integer', 'min:0', 'max:11'],
-            ]);
-        }
-
-        if ($serviceType->code === 'first_time_jobseeker_certification') {
-            $existingJobseekerRequest = ServiceRequest::query()
-                ->where('resident_profile_id', $residentProfileId)
-                ->whereHas('serviceType', fn ($query) => $query->where('code', 'first_time_jobseeker_certification'))
-                ->whereNotIn('current_status', ['rejected', 'cancelled'])
-                ->exists();
-
-            if ($existingJobseekerRequest) {
-                throw ValidationException::withMessages([
-                    'service_type_code' => 'A First-Time Jobseeker Certification request already exists for this resident.',
-                ]);
-            }
-        }
     }
 }

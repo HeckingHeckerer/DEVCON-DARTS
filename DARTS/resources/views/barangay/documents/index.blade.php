@@ -78,10 +78,20 @@
                                         {{ $document->submitted_at?->format('M d, Y h:i A') ?? '—' }}
                                     </td>
                                     <td class="px-4 py-4">
-                                        <a href="{{ route('barangay.documents.show', $document) }}"
-                                           class="font-medium text-slate-900 hover:text-slate-700">
-                                            Open
-                                        </a>
+                                        <div class="flex flex-col items-start gap-2">
+                                            <a href="{{ route('barangay.documents.show', $document) }}"
+                                               class="font-medium text-slate-900 hover:text-slate-700">
+                                                Open
+                                            </a>
+
+                                            @if (in_array($document->current_status, ['for_printing', 'ready_for_pickup', 'released'], true))
+                                                <a href="{{ route('barangay.documents.print', $document) }}"
+                                                   target="_blank"
+                                                   class="font-medium text-slate-700 hover:text-slate-900">
+                                                    Print
+                                                </a>
+                                            @endif
+                                        </div>
                                     </td>
                                 </tr>
                             @endforeach
