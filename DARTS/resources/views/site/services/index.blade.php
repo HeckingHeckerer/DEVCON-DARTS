@@ -12,7 +12,7 @@
             </h1>
 
             <p class="mt-3 max-w-3xl text-base leading-7 text-slate-600">
-                Public service overview shell for the six supported services.
+                Public service overview and resident request entry.
             </p>
         </section>
 
@@ -56,6 +56,15 @@
                                     </span>
                                 </div>
                             </div>
+
+                            @auth
+                                <div class="mt-5">
+                                    <a href="{{ route('resident.requests.create.service', $service) }}"
+                                       class="inline-flex rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800">
+                                        Start Request
+                                    </a>
+                                </div>
+                            @endauth
                         </article>
                     @empty
                         <div class="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6 text-sm text-slate-500">

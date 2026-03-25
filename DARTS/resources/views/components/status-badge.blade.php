@@ -4,7 +4,7 @@
     $value = strtolower(str_replace(['-', ' '], '_', (string) $status));
 
     $classes = match ($value) {
-        'active', 'verified', 'approved', 'paid', 'released', 'ready_for_pickup', 'ready_for_claim', 'completed', 'success' =>
+        'active', 'verified', 'approved', 'paid', 'released', 'ready_for_pickup', 'ready_for_claim', 'completed', 'success', 'accepted' =>
             'border-emerald-200 bg-emerald-50 text-emerald-700',
         'pending', 'pending_verification', 'submitted', 'under_review', 'for_payment', 'for_printing', 'for_assessment', 'info' =>
             'border-amber-200 bg-amber-50 text-amber-700',

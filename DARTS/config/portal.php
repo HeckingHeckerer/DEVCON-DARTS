@@ -36,6 +36,30 @@ return [
         'release_officer' => 'Release Officer',
     ],
 
+    'official_role_permissions' => [
+        'barangay_admin' => [
+            'reports',
+            'verification_review',
+            'request_processing',
+            'payment_processing',
+            'release_processing',
+            'referral_processing',
+        ],
+        'verifier' => [
+            'verification_review',
+        ],
+        'encoder' => [
+            'request_processing',
+            'referral_processing',
+        ],
+        'cashier' => [
+            'payment_processing',
+        ],
+        'release_officer' => [
+            'release_processing',
+        ],
+    ],
+
     'account_statuses' => [
         'active' => 'Active',
         'suspended' => 'Suspended',

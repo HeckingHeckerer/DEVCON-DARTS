@@ -22,7 +22,23 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        $user = $request->user()->loadMissing('residentProfile.verification');
+        $user = $request->user()->loadMissing([
+            'residentProfile.verification',
+            'officialProfile',
+        ]);
+
+        $user->update([
+            'last_login_at' => now(),
+            'last_login_ip' => $request->ip(),
+        ]);
+
+        if ($user->isCitySuperAdmin()) {
+            return redirect()->intended(route('super_admin.dashboard', absolute: false));
+        }
+
+        if ($user->isBarangayOfficial()) {
+            return redirect()->intended(route($user->preferredBarangayRoute(), absolute: false));
+        }
 
         if ($user->isResident()) {
             $residentProfile = $user->residentProfile;

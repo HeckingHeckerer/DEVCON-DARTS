@@ -55,9 +55,9 @@
                         </div>
 
                         @if ($serviceRequest->request_category === 'document')
-                            <div class="flex items-center justify-between gap-4">
+                            <div class="flex items-start justify-between gap-4">
                                 <span class="text-slate-500">Purpose</span>
-                                <span class="font-medium text-slate-900">{{ $serviceRequest->documentDetail?->purpose ?? '—' }}</span>
+                                <span class="max-w-[70%] text-right font-medium text-slate-900">{{ $serviceRequest->documentDetail?->purpose ?? '—' }}</span>
                             </div>
 
                             <div class="flex items-center justify-between gap-4">
@@ -69,6 +69,13 @@
                         @endif
 
                         @if ($serviceRequest->request_category === 'assistance')
+                            <div class="flex items-start justify-between gap-4">
+                                <span class="text-slate-500">Case Summary</span>
+                                <span class="max-w-[70%] text-right font-medium text-slate-900">
+                                    {{ $serviceRequest->assistanceDetail?->case_summary ?? '—' }}
+                                </span>
+                            </div>
+
                             <div class="flex items-center justify-between gap-4">
                                 <span class="text-slate-500">Requested Amount</span>
                                 <span class="font-medium text-slate-900">
@@ -83,6 +90,27 @@
                                 </span>
                             </div>
                         @endif
+                    </div>
+                </section>
+
+                <section class="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+                    <h2 class="text-2xl font-bold tracking-tight text-slate-900">Supporting Attachments</h2>
+
+                    <div class="mt-6 space-y-3">
+                        @forelse ($serviceRequest->attachments as $attachment)
+                            <div class="flex items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                                <div>
+                                    <p class="text-sm font-semibold text-slate-900">{{ $attachment->attachment_type }}</p>
+                                    <p class="text-xs text-slate-500">{{ $attachment->original_name ?? basename($attachment->file_path) }}</p>
+                                </div>
+
+                                <x-status-badge :status="$attachment->review_status" />
+                            </div>
+                        @empty
+                            <div class="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-5 text-sm text-slate-500">
+                                No supporting attachments uploaded.
+                            </div>
+                        @endforelse
                     </div>
                 </section>
 
@@ -117,7 +145,7 @@
                 <div class="flex items-center justify-between gap-4">
                     <div>
                         <h2 class="text-2xl font-bold tracking-tight text-slate-900">Status Timeline</h2>
-                        <p class="mt-2 text-sm text-slate-500">Resident-facing timeline shell.</p>
+                        <p class="mt-2 text-sm text-slate-500">Resident-facing timeline.</p>
                     </div>
 
                     <a href="{{ route('resident.requests.index') }}" class="rounded-xl border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">

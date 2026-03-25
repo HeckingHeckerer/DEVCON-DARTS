@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Middleware\EnsureBarangayOfficialRole;
+use App\Http\Middleware\EnsureBarangayPermission;
 use App\Http\Middleware\EnsureCitySuperAdminRole;
 use App\Http\Middleware\EnsureResidentOnboardingComplete;
 use App\Http\Middleware\EnsureResidentRole;
@@ -17,6 +19,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'resident' => EnsureResidentRole::class,
             'resident.onboarding' => EnsureResidentOnboardingComplete::class,
+            'barangay_official' => EnsureBarangayOfficialRole::class,
+            'official.permission' => EnsureBarangayPermission::class,
             'super_admin' => EnsureCitySuperAdminRole::class,
         ]);
     })

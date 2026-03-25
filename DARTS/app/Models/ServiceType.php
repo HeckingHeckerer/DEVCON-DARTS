@@ -26,6 +26,11 @@ class ServiceType extends Model
         ];
     }
 
+    public function getRouteKeyName(): string
+    {
+        return 'code';
+    }
+
     public function serviceRequests(): HasMany
     {
         return $this->hasMany(ServiceRequest::class);

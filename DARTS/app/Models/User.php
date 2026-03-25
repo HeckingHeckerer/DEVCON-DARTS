@@ -18,6 +18,9 @@ class User extends Authenticatable
         'role',
         'account_status',
         'is_resident_verified',
+        'email_verified_at',
+        'last_login_at',
+        'last_login_ip',
     ];
 
     protected $hidden = [
@@ -58,5 +61,35 @@ class User extends Authenticatable
     public function isCitySuperAdmin(): bool
     {
         return $this->role === 'city_super_admin';
+    }
+
+    public function officialRole(): ?string
+    {
+        return $this->officialProfile?->official_role;
+    }
+
+    public function barangayPermissions(): array
+    {
+        if (! $this->isBarangayOfficial()) {
+            return [];
+        }
+
+        return config('portal.official_role_permissions.' . $this->officialRole(), []);
+    }
+
+    public function canAccessBarangayPermission(string $permission): bool
+    {
+        return in_array($permission, $this->barangayPermissions(), true);
+    }
+
+    public function preferredBarangayRoute(): string
+    {
+        return match ($this->officialRole()) {
+            'verifier' => 'barangay.verifications.index',
+            'encoder' => 'barangay.documents.index',
+            'cashier' => 'barangay.payments.index',
+            'release_officer' => 'barangay.releases.index',
+            default => 'barangay.dashboard',
+        };
     }
 }

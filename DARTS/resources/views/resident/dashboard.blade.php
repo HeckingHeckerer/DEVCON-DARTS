@@ -14,24 +14,20 @@
                     </h1>
 
                     <p class="max-w-3xl text-sm leading-7 text-slate-600">
-                        Resident shell pages are active. Role enforcement and onboarding flow will be refined in later parts.
+                        Request center and submission flow are now active.
                     </p>
                 </div>
 
-                <div class="grid gap-3 sm:grid-cols-2">
-                    <div class="rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4">
-                        <p class="text-xs font-medium uppercase tracking-wide text-slate-500">Account Status</p>
-                        <div class="mt-2">
-                            <x-status-badge :status="$user->account_status" />
-                        </div>
-                    </div>
+                <div class="flex flex-wrap gap-3">
+                    <a href="{{ route('resident.requests.create') }}"
+                       class="rounded-xl bg-slate-900 px-5 py-3 text-sm font-medium text-white hover:bg-slate-800">
+                        Create Request
+                    </a>
 
-                    <div class="rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4">
-                        <p class="text-xs font-medium uppercase tracking-wide text-slate-500">Verification</p>
-                        <div class="mt-2">
-                            <x-status-badge :status="$verification?->status ?? 'pending_verification'" />
-                        </div>
-                    </div>
+                    <a href="{{ route('resident.requests.index') }}"
+                       class="rounded-xl border border-slate-300 px-5 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50">
+                        Open Request History
+                    </a>
                 </div>
             </div>
         </section>
@@ -64,12 +60,17 @@
                     <div>
                         <h2 class="text-2xl font-bold tracking-tight text-slate-900">Quick Access</h2>
                         <p class="mt-2 text-sm text-slate-500">
-                            Resident shell links for the next workflow slices.
+                            Resident request center and existing shell pages.
                         </p>
                     </div>
                 </div>
 
                 <div class="mt-6 grid gap-4 md:grid-cols-2">
+                    <a href="{{ route('resident.requests.create') }}" class="rounded-2xl border border-slate-200 bg-slate-50 p-5 transition hover:-translate-y-0.5 hover:bg-white">
+                        <h3 class="text-lg font-semibold text-slate-900">Create Request</h3>
+                        <p class="mt-2 text-sm leading-6 text-slate-600">Open the service chooser and request submission form.</p>
+                    </a>
+
                     <a href="{{ route('resident.profile.show') }}" class="rounded-2xl border border-slate-200 bg-slate-50 p-5 transition hover:-translate-y-0.5 hover:bg-white">
                         <h3 class="text-lg font-semibold text-slate-900">Profile</h3>
                         <p class="mt-2 text-sm leading-6 text-slate-600">View resident profile shell and verification details.</p>
@@ -77,17 +78,12 @@
 
                     <a href="{{ route('resident.requests.index') }}" class="rounded-2xl border border-slate-200 bg-slate-50 p-5 transition hover:-translate-y-0.5 hover:bg-white">
                         <h3 class="text-lg font-semibold text-slate-900">Request History</h3>
-                        <p class="mt-2 text-sm leading-6 text-slate-600">Open the resident request history and detail shells.</p>
+                        <p class="mt-2 text-sm leading-6 text-slate-600">Open submitted resident requests and detail pages.</p>
                     </a>
 
                     <a href="{{ route('resident.notifications.index') }}" class="rounded-2xl border border-slate-200 bg-slate-50 p-5 transition hover:-translate-y-0.5 hover:bg-white">
                         <h3 class="text-lg font-semibold text-slate-900">Notifications</h3>
                         <p class="mt-2 text-sm leading-6 text-slate-600">Open resident-facing notices and portal updates.</p>
-                    </a>
-
-                    <a href="{{ route('services.index') }}" class="rounded-2xl border border-slate-200 bg-slate-50 p-5 transition hover:-translate-y-0.5 hover:bg-white">
-                        <h3 class="text-lg font-semibold text-slate-900">Services</h3>
-                        <p class="mt-2 text-sm leading-6 text-slate-600">Browse supported document and assistance services.</p>
                     </a>
                 </div>
             </div>
@@ -96,7 +92,7 @@
                 <div>
                     <h2 class="text-2xl font-bold tracking-tight text-slate-900">Resident Summary</h2>
                     <p class="mt-2 text-sm text-slate-500">
-                        Current authenticated resident shell context.
+                        Current authenticated resident context.
                     </p>
                 </div>
 

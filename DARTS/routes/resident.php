@@ -23,7 +23,14 @@ Route::middleware(['auth', 'resident'])
         Route::middleware('resident.onboarding')->group(function () {
             Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
             Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
+
             Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+            Route::patch('/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.read_all');
+
+            Route::get('/requests/create', [RequestController::class, 'create'])->name('requests.create');
+            Route::get('/requests/create/{serviceType:code}', [RequestController::class, 'createForService'])->name('requests.create.service');
+            Route::post('/requests', [RequestController::class, 'store'])->name('requests.store');
+
             Route::get('/requests', [RequestController::class, 'index'])->name('requests.index');
             Route::get('/requests/{referenceNumber}', [RequestController::class, 'show'])->name('requests.show');
         });
